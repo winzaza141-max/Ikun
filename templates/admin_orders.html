@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>จัดการออเดอร์ - ร้านข้าวกล่องไอคุน</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .order-card { transition: all 0.3s ease; border-left: 6px solid #ccc; }
+        .status-pending { border-left-color: #ffc107; background-color: #fffdf5; }  /* สีเหลือง: รอยืนยัน */
+        .status-cooking { border-left-color: #0d6efd; background-color: #f8fafe; }  /* สีฟ้า: กำลังทำ */
+        .status-served { border-left-color: #198754; opacity: 0.75; }               /* สีเขียว: เสิร์ฟแล้ว */
+        .status-cancelled { border-left-color: #dc3545; opacity: 0.5; }            /* สีแดง: ยกเลิก */
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1 fw-bold text-danger">🍱 ข้าวกล่องไอคุน (หน้าห้องครัว / รับออเดอร์)</span>
+            <div>
+                <a href="/admin/menus" class="btn btn-outline-light btn-sm me-2">จัดการเมนู</a>
+                <button class="btn btn-danger btn-sm" onclick="fetchOrders()">
+                    <i class="bi bi-arrow-clockwise"></i> รีเฟรช
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4">
+        <!-- ตัวกรองสถานะ -->
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-dark active" onclick="filterOrders('all')">ทั้งหมด</button>
+                    <button type="button" class="btn btn-outline-warning" onclick="filterOrders('pending')">⏳ รอยืนยัน</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="filterOrders('cooking')">🍳 กำลังทำ</button>
+                    <button type="button" class="btn btn-outline-success" onclick="filterOrders('served')">✅ เสิร์ฟแล้ว</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- รายการ Card ออเดอร์ -->
+        <div class="row g-3" id="ordersContainer">
+            <div class="text-center py-5 text-muted">กำลังดึงรายการออเดอร์...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let allOrders = [];
+        let currentFilter = 'all';
+
+        // โหลดข้อมูลเมื่อเปิดหน้าเว็บ และตั้งให้ดึงอัตโนมัติทุกๆ 5 วินาที
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchOrders();
+            setInterval(fetchOrders, 5000); 
+        });
+
+        async function fetchOrders() {
+            try {
+                const res = await fetch('/api/admin/orders');
+                const result = await res.json();
+                if (result.success) {
+                    allOrders = result.data;
+                    renderOrders();
+                }
+            } catch (err) {
+                console.error("Fetch Error:", err);
+            }
+        }
+
+        function filterOrders(status) {
+            currentFilter = status;
+            // ปรับปุ่ม Active
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('ordersContainer');
+            
+            // กรองสถานะ
+            let filtered = allOrders;
+            if (currentFilter !== 'all') {
+                filtered = allOrders.filter(o => o.status === currentFilter);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-12 text-center py-5 text-muted fs-5">ไม่มีรายการออเดอร์ในหมวดนี้</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(order => {
+                const timeStr = new Date(order.created_at * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                
+                // แปลง Status เป็น Text & Badge
+                let statusBadge = '';
+                let statusClass = '';
+                if (order.status === 'pending') {
+                    statusBadge = '<span class="badge bg-warning text-dark fs-6">⏳ รอยืนยัน</span>';
+                    statusClass = 'status-pending';
+                } else if (order.status === 'cooking') {
+                    statusBadge = '<span class="badge bg-primary fs-6">🍳 กำลังทำ</span>';
+                    statusClass = 'status-cooking';
+                } else if (order.status === 'served') {
+                    statusBadge = '<span class="badge bg-success fs-6">✅ เสิร์ฟแล้ว</span>';
+                    statusClass = 'status-served';
+                } else {
+                    statusBadge = '<span class="badge bg-danger fs-6">❌ ยกเลิก</span>';
+                    statusClass = 'status-cancelled';
+                }
+
+                // สร้าง List รายการอาหารที่สั่ง
+                const itemsList = order.items.map(item => `
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent py-2">
+                        <div>
+                            <span class="fw-bold">${item.name}</span>
+                            <small class="text-muted d-block">${item.price} ฿</small>
+                        </div>
+                        <span class="badge bg-danger rounded-pill fs-6">x${item.qty}</span>
+                    </li>
+                `).join('');
+
+                return `
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="card shadow-sm order-card ${statusClass}">
+                            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                                <h4 class="fw-bold mb-0 text-danger">โต๊ะ ${order.table_number}</h4>
+                                <small class="text-muted"><i class="bi bi-clock"></i> ${timeStr} น.</small>
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="mb-2 text-end">${statusBadge}</div>
+                                <ul class="list-group list-group-flush border-top border-bottom mb-3">
+                                    ${itemsList}
+                                </ul>
+                                <div class="d-flex justify-content-between fw-bold fs-5 px-2 mb-3">
+                                    <span>ราคารวม:</span>
+                                    <span class="text-danger">${order.total_price.toFixed(2)} ฿</span>
+                                </div>
+
+                                <!-- ปุ่มกดเปลี่ยนสถานะ -->
+                                <div class="d-grid gap-1">
+                                    ${order.status === 'pending' ? `
+                                        <button class="btn btn-primary fw-bold" onclick="updateStatus('${order.id}', 'cooking')">
+                                            🍳 เริ่มทำอาหาร
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="updateStatus('${order.id}', 'cancelled')">
+                                            ยกเลิกออเดอร์
+                                        </button>
+                                    ` : ''}
+
+                                    ${order.status === 'cooking' ? `
+                                        <button class="btn btn-success fw-bold" onclick="updateStatus('${order.id}', 'served')">
+                                            ✅ ทำเสร็จ/พร้อมเสิร์ฟ
+                                        </button>
+                                    ` : ''}
+
+                                    ${order.status === 'served' ? `
+                                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                                            ออเดอร์เสร็จสิ้น
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ยิง API อัปเดตสถานะ
+        async function updateStatus(orderId, newStatus) {
+            try {
+                const res = await fetch(`/api/admin/orders/${orderId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    fetchOrders(); // รีโหลดข้อมูลใหม่ทันที
+                } else {
+                    Swal.fire('ผิดพลาด', result.error, 'error');
+                }
+            } catch (err) {
+                Swal.fire('ผิดพลาด', 'ไม่สามารถอัปเดตสถานะได้', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
