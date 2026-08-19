@@ -1,16 +1,20 @@
 import firebase_admin
 from firebase_admin import credentials, firestore
 import os
+import json
 
-# ตรวจสอบพาธคีย์บน Render
-if os.path.exists('/etc/secrets/serviceAccountKey.json'):
-    cred_path = '/etc/secrets/serviceAccountKey.json'
+# ตรวจสอบว่ามี Environment Variable หรือไม่
+if os.environ.get('FIREBASE_SERVICE_ACCOUNT'):
+    # อ่านจาก Vercel Environment Variable
+    cred_json = json.loads(os.environ.get('FIREBASE_SERVICE_ACCOUNT'))
+    cred = credentials.Certificate(cred_json)
+elif os.path.exists('serviceAccountKey.json'):
+    # อ่านจากไฟล์ใน Local (เครื่องคอมของคุณ)
+    cred = credentials.Certificate('serviceAccountKey.json')
 else:
-    cred_path = 'serviceAccountKey.json'
+    raise FileNotFoundError("ไม่พบข้อมูล Firebase Credentials")
 
-cred = credentials.Certificate(cred_path)
-
-# เริ่มต้น Firebase แบบใช้แค่ Firestore (ไม่ต้องใส่ storageBucket)
-firebase_admin.initialize_app(cred)
+if not firebase_admin._apps:
+    firebase_admin.initialize_app(cred)
 
 db = firestore.client()
