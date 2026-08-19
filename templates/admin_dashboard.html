@@ -12,7 +12,7 @@
         body {
             display: flex;
             min-height: 100vh;
-            background-color: #f8f9fa;
+            background-color: #f4f6f9;
         }
 
         /* Sidebar Responsive */
@@ -64,12 +64,12 @@
             }
         }
 
-        /* Custom Glassmorphism UI Style */
+        /* Glassmorphism Buttons */
         .btn-glass {
-            background: rgba(255, 255, 255, 0.75) !important;
-            backdrop-filter: blur(10px) saturate(180%);
-            -webkit-backdrop-filter: blur(10px) saturate(180%);
-            border: 1px solid rgba(225, 225, 230, 0.8) !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(210, 215, 225, 0.8) !important;
             border-radius: 50px !important;
             color: #4a5568 !important;
             font-weight: 600;
@@ -126,11 +126,93 @@
             transform: translateY(-2px);
         }
 
-        .order-card { transition: all 0.3s ease; border-left: 6px solid #ccc; }
-        .status-pending { border-left-color: #ffc107; background-color: #fffdf5; }
-        .status-cooking { border-left-color: #0d6efd; background-color: #f8fafe; }
-        .status-served { border-left-color: #198754; opacity: 0.75; }
-        .status-cancelled { border-left-color: #dc3545; opacity: 0.5; }
+        /* Order Cards - Glassmorphism UI Update */
+        .order-card {
+            border: 1px solid rgba(255, 255, 255, 0.8) !important;
+            border-radius: 20px !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .order-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+        }
+
+        .order-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+        }
+
+        .status-pending::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .status-cooking::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+        .status-served::before { background: linear-gradient(90deg, #10b981, #34d399); }
+        .status-cancelled::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+        /* Action Buttons Inside Card */
+        .btn-action-primary {
+            background: rgba(59, 130, 246, 0.12) !important;
+            color: #2563eb !important;
+            border: 1px solid rgba(59, 130, 246, 0.3) !important;
+            border-radius: 50px !important;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        .btn-action-primary:hover {
+            background: rgba(59, 130, 246, 0.22) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-action-success {
+            background: rgba(16, 185, 129, 0.12) !important;
+            color: #059669 !important;
+            border: 1px solid rgba(16, 185, 129, 0.3) !important;
+            border-radius: 50px !important;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        }
+        .btn-action-success:hover {
+            background: rgba(16, 185, 129, 0.22) !important;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+        }
+
+        .btn-action-cancel {
+            background: rgba(239, 68, 68, 0.08) !important;
+            color: #dc2626 !important;
+            border: 1px solid rgba(239, 68, 68, 0.2) !important;
+            border-radius: 50px !important;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .btn-action-cancel:hover {
+            background: rgba(239, 68, 68, 0.18) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Glass Badges */
+        .glass-badge {
+            border-radius: 50px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .glass-badge-pending { background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .glass-badge-cooking { background: rgba(59, 130, 246, 0.15); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .glass-badge-served { background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .glass-badge-cancelled { background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
 
         /* Skeleton Loading */
         @keyframes shimmer {
@@ -152,7 +234,6 @@
         .skeleton-text { width: 100%; height: 16px; margin: 4px 0; }
         .skeleton-text-sm { width: 60%; height: 14px; }
         .skeleton-btn { width: 60px; height: 30px; border-radius: 6px; }
-        .skeleton-card { height: 220px; width: 100%; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -231,7 +312,7 @@
                 </button>
             </div>
 
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
@@ -257,7 +338,7 @@
     <!-- Modal เพิ่ม/แก้ไข เมนู -->
     <div class="modal fade" id="menuModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+            <div class="modal-content rounded-4 border-0">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold" id="modalTitle">เพิ่มเมนูใหม่</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -291,8 +372,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ยกเลิก</button>
-                        <button type="submit" class="btn btn-danger">บันทึกข้อมูล</button>
+                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="submit" class="btn btn-danger rounded-pill">บันทึกข้อมูล</button>
                     </div>
                 </form>
             </div>
@@ -338,11 +419,11 @@
             if (showSkeleton && allOrders.length === 0) {
                 container.innerHTML = Array(4).fill(0).map(() => `
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card p-3 shadow-sm border-0">
+                        <div class="card p-3 shadow-sm border-0 rounded-4">
                             <div class="skeleton skeleton-text mb-2"></div>
                             <div class="skeleton skeleton-text-sm mb-3"></div>
-                            <div class="skeleton skeleton-card mb-2"></div>
-                            <div class="skeleton skeleton-btn w-100"></div>
+                            <div class="skeleton skeleton-text mb-2"></div>
+                            <div class="skeleton skeleton-btn w-100 mt-2"></div>
                         </div>
                     </div>
                 `).join('');
@@ -395,55 +476,55 @@
                 let statusBadge = '', statusClass = '';
                 
                 if (order.status === 'pending') {
-                    statusBadge = '<span class="badge bg-warning text-dark fs-6">⏳ รอยืนยัน</span>';
+                    statusBadge = '<span class="glass-badge glass-badge-pending">⏳ รอยืนยัน</span>';
                     statusClass = 'status-pending';
                 } else if (order.status === 'cooking') {
-                    statusBadge = '<span class="badge bg-primary fs-6">🍳 กำลังทำ</span>';
+                    statusBadge = '<span class="glass-badge glass-badge-cooking">🍳 กำลังทำ</span>';
                     statusClass = 'status-cooking';
                 } else if (order.status === 'served') {
-                    statusBadge = '<span class="badge bg-success fs-6">✅ เสิร์ฟแล้ว</span>';
+                    statusBadge = '<span class="glass-badge glass-badge-served">✅ เสิร์ฟแล้ว</span>';
                     statusClass = 'status-served';
                 } else {
-                    statusBadge = '<span class="badge bg-danger fs-6">❌ ยกเลิก</span>';
+                    statusBadge = '<span class="glass-badge glass-badge-cancelled">❌ ยกเลิก</span>';
                     statusClass = 'status-cancelled';
                 }
 
                 const itemsList = order.items.map(i => `
-                    <li class="list-group-item d-flex justify-content-between align-items-start bg-transparent py-2">
+                    <li class="list-group-item d-flex justify-content-between align-items-start bg-transparent py-2 border-0 px-0">
                         <div>
-                            <span class="fw-bold">${i.name}</span>
-                            ${i.note ? `<small class="d-block text-warning-emphasis bg-warning-subtle px-2 py-0.5 rounded mt-1 fw-medium">📌 ${i.note}</small>` : ''}
+                            <span class="fw-bold text-dark">${i.name}</span>
+                            ${i.note ? `<small class="d-block text-warning-emphasis bg-warning-subtle px-2 py-0.5 rounded-pill mt-1 fw-medium" style="font-size: 0.78rem;">📌 ${i.note}</small>` : ''}
                             <small class="text-muted d-block mt-1">${i.price} ฿</small>
                         </div>
-                        <span class="badge bg-danger rounded-pill fs-6">x${i.qty}</span>
+                        <span class="badge bg-danger rounded-pill px-2.5 py-1.5 fs-6">x${i.qty}</span>
                     </li>
                 `).join('');
 
                 return `
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card shadow-sm order-card ${statusClass}">
-                            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <div class="card order-card p-2 ${statusClass}">
+                            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 pb-2 px-2">
                                 <h4 class="fw-bold mb-0 text-danger">โต๊ะ ${order.table_number}</h4>
                                 <small class="text-muted"><i class="bi bi-clock"></i> ${timeStr} น.</small>
                             </div>
                             <div class="card-body p-2">
-                                <div class="mb-2 text-end">${statusBadge}</div>
-                                <ul class="list-group list-group-flush border-top border-bottom mb-3">${itemsList}</ul>
-                                <div class="d-flex justify-content-between fw-bold fs-5 px-2 mb-3">
-                                    <span>ราคารวม:</span>
-                                    <span class="text-danger">${Number(order.total_price).toFixed(2)} ฿</span>
+                                <div class="mb-3 text-end">${statusBadge}</div>
+                                <ul class="list-group list-group-flush border-top border-bottom mb-3 py-1">${itemsList}</ul>
+                                <div class="d-flex justify-content-between align-items-center fw-bold fs-5 px-1 mb-3">
+                                    <span class="text-secondary fs-6">ราคารวม</span>
+                                    <span class="text-danger fs-4">${Number(order.total_price).toFixed(2)} ฿</span>
                                 </div>
                                 <div class="d-grid gap-2">
                                     ${order.status === 'pending' ? `
-                                        <button class="btn btn-primary fw-bold py-2" onclick="updateOrderStatus('${order.id}', 'cooking', this)">
+                                        <button class="btn btn-action-primary py-2" onclick="updateOrderStatus('${order.id}', 'cooking', this)">
                                             🍳 เริ่มทำอาหาร
                                         </button>
-                                        <button class="btn btn-outline-danger btn-sm" onclick="updateOrderStatus('${order.id}', 'cancelled', this)">
+                                        <button class="btn btn-action-cancel btn-sm py-1.5" onclick="updateOrderStatus('${order.id}', 'cancelled', this)">
                                             ยกเลิกออเดอร์
                                         </button>
                                     ` : ''}
                                     ${order.status === 'cooking' ? `
-                                        <button class="btn btn-success fw-bold py-2" onclick="updateOrderStatus('${order.id}', 'served', this)">
+                                        <button class="btn btn-action-success py-2" onclick="updateOrderStatus('${order.id}', 'served', this)">
                                             ✅ ทำเสร็จ/พร้อมเสิร์ฟ
                                         </button>
                                     ` : ''}
@@ -521,19 +602,19 @@
 
             tbody.innerHTML = menusData.map(item => `
                 <tr>
-                    <td><img src="${item.image_url || 'https://via.placeholder.com/50'}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                    <td><img src="${item.image_url || 'https://via.placeholder.com/50'}" class="rounded-3" style="width: 50px; height: 50px; object-fit: cover;"></td>
                     <td class="fw-bold">${item.name}</td>
-                    <td><span class="badge bg-secondary">${item.category || 'ทั่วไป'}</span></td>
+                    <td><span class="badge bg-secondary rounded-pill">${item.category || 'ทั่วไป'}</span></td>
                     <td>${Number(item.price).toFixed(2)}</td>
                     <td>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" ${item.is_available ? 'checked' : ''} onchange="toggleMenuStatus('${item.id}', this.checked)">
-                            <label class="form-check-label">${item.is_available ? '<span class="text-success">พร้อมขาย</span>' : '<span class="text-muted">หมด</span>'}</label>
+                            <label class="form-check-label">${item.is_available ? '<span class="text-success fw-medium">พร้อมขาย</span>' : '<span class="text-muted">หมด</span>'}</label>
                         </div>
                     </td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditMenuModal('${item.id}')"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteMenu('${item.id}')"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="openEditMenuModal('${item.id}')"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteMenu('${item.id}')"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
