@@ -456,10 +456,44 @@
             renderOrders();
         }
 
+        /* ฟังก์ชั่นคำนวณบิลเรียงตามลำดับเวลา และรีเซ็ตกลับเป็น 1 ทุกๆ 30 นาที */
+        function calculateBillNumbers(orders) {
+            // เรียงลำดับออเดอร์จากเก่าไปใหม่ตามเวลาสั่งซื้อ
+            const sorted = [...orders].sort((a, b) => a.created_at - b.created_at);
+            const billMap = {};
+            const timeSlotCounters = {};
+
+            sorted.forEach(order => {
+                const date = new Date(order.created_at * 1000);
+                // สร้าง Key สำหรับแยกช่วงเวลาครึ่งชั่วโมง (เช่น "2026-03-31-14-0" และ "2026-03-31-14-1")
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const day = date.getDate();
+                const hour = date.getHours();
+                const halfHourSlot = Math.floor(date.getMinutes() / 30);
+                
+                const slotKey = `${year}-${month}-${day}-${hour}-${halfHourSlot}`;
+
+                // หากเป็นช่วงเวลาใหม่ ให้เริ่มรันเลขบิลที่ 1
+                if (!timeSlotCounters[slotKey]) {
+                    timeSlotCounters[slotKey] = 1;
+                } else {
+                    timeSlotCounters[slotKey]++;
+                }
+
+                billMap[order.id] = timeSlotCounters[slotKey];
+            });
+
+            return billMap;
+        }
+
         function renderOrders() {
             const container = document.getElementById('ordersContainer');
-            let filtered = [];
+            
+            // คำนวณเลขบิลของแต่ละออเดอร์
+            const billNumbers = calculateBillNumbers(allOrders);
 
+            let filtered = [];
             if (currentOrderFilter === 'all') {
                 filtered = allOrders.filter(o => o.status === 'pending' || o.status === 'cooking');
             } else {
@@ -473,6 +507,7 @@
 
             container.innerHTML = filtered.map(order => {
                 const timeStr = new Date(order.created_at * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                const billNo = billNumbers[order.id] || 1;
                 let statusBadge = '', statusClass = '';
                 
                 if (order.status === 'pending') {
@@ -504,7 +539,7 @@
                     <div class="col-md-6 col-lg-4 col-xl-3">
                         <div class="card order-card p-2 ${statusClass}">
                             <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 pb-2 px-2">
-                                <h4 class="fw-bold mb-0 text-danger">โต๊ะ ${order.table_number}</h4>
+                                <h4 class="fw-bold mb-0 text-danger">บิลที่ ${billNo}</h4>
                                 <small class="text-muted"><i class="bi bi-clock"></i> ${timeStr} น.</small>
                             </div>
                             <div class="card-body p-2">
