@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify
-from firebase_config import db, bucket
+from firebase_config import db
 import time
 from firebase_admin import firestore
 
@@ -77,22 +77,17 @@ def get_all_menus_admin():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-# เพิ่มเมนูใหม่
+# เพิ่มเมนูใหม่ (รับ URL รูปภาพแทนการอัปโหลดไฟล์)
 @app.route('/api/admin/menus', methods=['POST'])
 def add_menu_admin():
     try:
-        name = request.form.get('name')
-        price = float(request.form.get('price'))
-        category = request.form.get('category')
-        file = request.files.get('image')
-
-        image_url = ""
-        if file:
-            filename = f"menus/{int(time.time())}_{file.filename}"
-            blob = bucket.blob(filename)
-            blob.upload_from_string(file.read(), content_type=file.content_type)
-            blob.make_public()
-            image_url = blob.public_url
+        # รองรับทั้งแบบ JSON และ Form-data
+        data = request.json if request.is_json else request.form
+        
+        name = data.get('name')
+        price = float(data.get('price', 0))
+        category = data.get('category')
+        image_url = data.get('image_url', '')
 
         menu_data = {
             "name": name,
@@ -112,10 +107,12 @@ def add_menu_admin():
 @app.route('/api/admin/menus/<menu_id>', methods=['PUT'])
 def update_menu_admin(menu_id):
     try:
-        name = request.form.get('name')
-        price = float(request.form.get('price'))
-        category = request.form.get('category')
-        file = request.files.get('image')
+        data = request.json if request.is_json else request.form
+        
+        name = data.get('name')
+        price = float(data.get('price', 0))
+        category = data.get('category')
+        image_url = data.get('image_url')
 
         update_data = {
             "name": name,
@@ -123,12 +120,8 @@ def update_menu_admin(menu_id):
             "category": category
         }
 
-        if file:
-            filename = f"menus/{int(time.time())}_{file.filename}"
-            blob = bucket.blob(filename)
-            blob.upload_from_string(file.read(), content_type=file.content_type)
-            blob.make_public()
-            update_data["image_url"] = blob.public_url
+        if image_url is not None:
+            update_data["image_url"] = image_url
 
         db.collection('menus').document(menu_id).update(update_data)
         return jsonify({"success": True, "message": "อัปเดตเมนูสำเร็จ"}), 200
@@ -193,3 +186,4 @@ def update_order_status(order_id):
 # ==========================================
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+    
