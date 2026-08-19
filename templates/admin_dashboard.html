@@ -251,6 +251,30 @@
                 }
             } catch (err) { console.error(err); }
         }
+        // สำหรับตารางจัดการเมนูอาหาร Admin
+function loadAdminMenus() {
+  const tbody = document.getElementById('menuTableBody');
+  
+  // แสดงแถบ Skeleton ในตารางหลอกไว้ 4 แถว
+  tbody.innerHTML = Array(4).fill(0).map(() => `
+    <tr>
+      <td><div class="skeleton skeleton-img"></div></td>
+      <td>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text-sm"></div>
+      </td>
+      <td><div class="skeleton skeleton-text-sm"></div></td>
+      <td><div class="skeleton skeleton-text-sm"></div></td>
+      <td><div class="skeleton skeleton-btn"></div></td>
+    </tr>
+  `).join('');
+
+  fetch('/api/admin/menus')
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) renderAdminTable(res.data);
+    });
+}
 
         function filterOrders(status, btnElement) {
             currentOrderFilter = status;
