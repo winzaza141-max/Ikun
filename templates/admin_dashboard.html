@@ -306,11 +306,16 @@
                 }
 
                 const itemsList = order.items.map(i => `
-                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent py-2">
-                        <div><span class="fw-bold">${i.name}</span><small class="text-muted d-block">${i.price} ฿</small></div>
-                        <span class="badge bg-danger rounded-pill fs-6">x${i.qty}</span>
-                    </li>
-                `).join('');
+    <li class="list-group-item d-flex justify-content-between align-items-start bg-transparent py-2">
+        <div>
+            <span class="fw-bold">${i.name}</span>
+            <!-- แสดงหมายเหตุถ้าลูกค้าใส่มา -->
+            ${i.note ? `<small class="d-block text-warning-emphasis bg-warning-subtle px-2 py-0.5 rounded mt-1 fw-medium">📌 ${i.note}</small>` : ''}
+            <small class="text-muted d-block mt-1">${i.price} ฿</small>
+        </div>
+        <span class="badge bg-danger rounded-pill fs-6">x${i.qty}</span>
+    </li>
+`).join('');
 
                 return `
                     <div class="col-md-6 col-lg-4 col-xl-3">

@@ -162,7 +162,42 @@
                 </div>
             `).join('');
         }
+function renderCartModal() {
+    const cartContainer = document.getElementById('cartItemsContainer'); // ปรับตาม ID ในโค้ดของคุณ
+    
+    if (cart.length === 0) {
+        cartContainer.innerHTML = '<p class="text-center py-3">ไม่มีรายการในตะกร้า</p>';
+        return;
+    }
 
+    cartContainer.innerHTML = cart.map((item, index) => `
+        <div class="cart-item border-bottom pb-2 mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <div>
+                    <h6 class="fw-bold mb-0">${item.name}</h6>
+                    <small class="text-muted">${item.price} x ${item.qty} = ${(item.price * item.qty).toFixed(2)} ฿</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="updateQty(${index}, -1)">-</button>
+                    <span class="fw-bold">${item.qty}</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="updateQty(${index}, 1)">+</button>
+                </div>
+            </div>
+            
+            <!--  เพิ่มช่องใส่หมายเหตุตรงนี้ -->
+            <input type="text" 
+                   class="form-control form-control-sm mt-1 text-muted" 
+                   placeholder="✏️ หมายเหตุ (เช่น เผ็ดน้อย, ไม่ใส่ผัก)" 
+                   value="${item.note || ''}" 
+                   onchange="updateItemNote(${index}, this.value)">
+        </div>
+    `).join('');
+}
+
+// ฟังก์ชันอัปเดตหมายเหตุในตะกร้า
+function updateItemNote(index, noteValue) {
+    cart[index].note = noteValue;
+}
         function filterCategory(cat, btnElement) {
             if (cat === 'ทั้งหมด') {
                 renderMenus(allMenus);
