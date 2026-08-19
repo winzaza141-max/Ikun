@@ -8,74 +8,39 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { min-height: 100vh; overflow-x: hidden; }
-        /* Animation สำหรับ Skeleton Shimmer */
-@keyframes shimmer {
-  0% { background-position: -200px 0; }
-  100% { background-position: 200px 0; }
-}
-
-.skeleton {
-  background: #f6f7f8;
-  background-image: linear-gradient(
-    90deg,
-    #f6f7f8 0%,
-    #edeef1 20%,
-    #f6f7f8 40%,
-    #f6f7f8 100%
-  );
-  background-repeat: no-repeat;
-  background-size: 800px 104px;
-  display: inline-block;
-  position: relative;
-  animation: shimmer 1.2s ease-in-out infinite;
-  border-radius: 6px;
-}
-
-/* ขนาด Skeleton รูปแบบต่างๆ */
-.skeleton-img { width: 60px; height: 60px; border-radius: 8px; }
-.skeleton-text { width: 100%; height: 16px; margin: 4px 0; }
-.skeleton-text-sm { width: 60%; height: 14px; }
-.skeleton-btn { width: 80px; height: 32px; border-radius: 6px; }
-        /* Layout Sidebar */
-        .sidebar {
-            width: 260px;
-            min-height: 100vh;
-            background-color: #212529;
-            color: #fff;
-            position: fixed;
-            top: 0;
-            left: 0;
-            z-index: 100;
-        }
-        .main-content {
-            margin-left: 260px;
-            padding: 20px;
-        }
-        .nav-link {
-            color: rgba(255,255,255,.75);
-            font-size: 1.05rem;
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: #fff;
-            background-color: #dc3545; /* สีแดงไอคุน */
-        }
-        
-        /* Order Cards Style */
         .order-card { transition: all 0.3s ease; border-left: 6px solid #ccc; }
         .status-pending { border-left-color: #ffc107; background-color: #fffdf5; }
         .status-cooking { border-left-color: #0d6efd; background-color: #f8fafe; }
-        .status-served { border-left-color: #198754; opacity: 0.8; }
+        .status-served { border-left-color: #198754; opacity: 0.75; }
         .status-cancelled { border-left-color: #dc3545; opacity: 0.5; }
 
-        @media (max-width: 768px) {
-            .sidebar { width: 100%; min-height: auto; position: relative; }
-            .main-content { margin-left: 0; }
+        /* CSS Skeleton Shimmer */
+        @keyframes shimmer {
+          0% { background-position: -200px 0; }
+          100% { background-position: 200px 0; }
         }
+
+        .skeleton {
+          background: #f6f7f8;
+          background-image: linear-gradient(
+            90deg,
+            #f6f7f8 0%,
+            #edeef1 20%,
+            #f6f7f8 40%,
+            #f6f7f8 100%
+          );
+          background-repeat: no-repeat;
+          background-size: 800px 104px;
+          display: inline-block;
+          animation: shimmer 1.2s ease-in-out infinite;
+          border-radius: 6px;
+        }
+
+        .skeleton-img { width: 50px; height: 50px; border-radius: 8px; }
+        .skeleton-text { width: 100%; height: 16px; margin: 4px 0; }
+        .skeleton-text-sm { width: 60%; height: 14px; }
+        .skeleton-btn { width: 60px; height: 30px; border-radius: 6px; }
+        .skeleton-card { height: 220px; width: 100%; border-radius: 8px; }
     </style>
 </head>
 <body class="bg-light">
@@ -114,22 +79,21 @@
                     <h3 class="fw-bold mb-0">🍳 รายการสั่งอาหาร (Orders)</h3>
                     <small class="text-muted">ระบบจะอัปเดตข้อมูลให้อัตโนมัติทุกๆ 5 วินาที</small>
                 </div>
-                <button class="btn btn-outline-danger btn-sm" onclick="fetchOrders()">
+                <button class="btn btn-outline-danger btn-sm" onclick="fetchOrders(true)">
                     <i class="bi bi-arrow-clockwise"></i> รีเฟรชข้อมูล
                 </button>
             </div>
 
-           <!-- Filter Status -->
+            <!-- Filter Status -->
             <div class="btn-group mb-3" id="orderFilterGroup" role="group">
                 <button type="button" class="btn btn-dark active" onclick="filterOrders('all', this)">ทั้งหมด</button>
                 <button type="button" class="btn btn-outline-warning text-dark" onclick="filterOrders('pending', this)">⏳ รอยืนยัน</button>
                 <button type="button" class="btn btn-outline-primary" onclick="filterOrders('cooking', this)">🍳 กำลังทำ</button>
                 <button type="button" class="btn btn-outline-success" onclick="filterOrders('served', this)">✅ เสิร์ฟแล้ว</button>
             </div>
+
             <!-- Cards Container -->
-            <div class="row g-3" id="ordersContainer">
-                <div class="text-center py-5 text-muted">กำลังดึงรายการออเดอร์...</div>
-            </div>
+            <div class="row g-3" id="ordersContainer"></div>
         </div>
 
         <!-- SECTION 2: หน้าจัดการเมนูอาหาร -->
@@ -158,9 +122,7 @@
                                     <th class="text-center" style="width: 150px;">จัดการ</th>
                                 </tr>
                             </thead>
-                            <tbody id="menuTableBody">
-                                <tr><td colspan="6" class="text-center py-4">กำลังโหลดข้อมูล...</td></tr>
-                            </tbody>
+                            <tbody id="menuTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -200,9 +162,9 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">รูปภาพเมนู</label>
-                            <input type="file" class="form-control" id="menuImage" accept="image/*">
-                            <small class="text-muted">หากไม่เปลี่ยนรูปตอนแก้ไข ให้เว้นว่างไว้</small>
+                            <label class="form-label">รูปภาพเมนู (URL)</label>
+                            <input type="text" class="form-control" id="menuImageUrl" placeholder="https://example.com/image.jpg">
+                            <small class="text-muted">ใส่ URL รูปภาพของเมนูอาหาร</small>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -216,7 +178,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // --- 1. SIDEBAR & TAB SWITCHING ---
         function switchTab(tabName) {
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tabName}`).classList.add('active');
@@ -224,7 +185,7 @@
             if (tabName === 'orders') {
                 document.getElementById('section-orders').style.display = 'block';
                 document.getElementById('section-menus').style.display = 'none';
-                fetchOrders();
+                fetchOrders(true);
             } else {
                 document.getElementById('section-orders').style.display = 'none';
                 document.getElementById('section-menus').style.display = 'block';
@@ -232,16 +193,29 @@
             }
         }
 
-        // --- 2. ORDERS LOGIC ---
         let allOrders = [];
         let currentOrderFilter = 'all';
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetchOrders();
-            setInterval(fetchOrders, 5000); // Fetch orders every 5s
+            fetchOrders(true);
+            setInterval(() => fetchOrders(false), 5000);
         });
 
-        async function fetchOrders() {
+        async function fetchOrders(showSkeleton = false) {
+            const container = document.getElementById('ordersContainer');
+            if (showSkeleton && allOrders.length === 0) {
+                container.innerHTML = Array(4).fill(0).map(() => `
+                    <div class="col-md-6 col-lg-4 col-xl-3">
+                        <div class="card p-3 shadow-sm border-0">
+                            <div class="skeleton skeleton-text mb-2"></div>
+                            <div class="skeleton skeleton-text-sm mb-3"></div>
+                            <div class="skeleton skeleton-card mb-2"></div>
+                            <div class="skeleton skeleton-btn w-100"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
             try {
                 const res = await fetch('/api/admin/orders');
                 const result = await res.json();
@@ -249,53 +223,26 @@
                     allOrders = result.data;
                     renderOrders();
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err);
+                if (showSkeleton) container.innerHTML = `<div class="col-12 text-center py-5 text-danger fs-5">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+            }
         }
-        // สำหรับตารางจัดการเมนูอาหาร Admin
-function loadAdminMenus() {
-  const tbody = document.getElementById('menuTableBody');
-  
-  // แสดงแถบ Skeleton ในตารางหลอกไว้ 4 แถว
-  tbody.innerHTML = Array(4).fill(0).map(() => `
-    <tr>
-      <td><div class="skeleton skeleton-img"></div></td>
-      <td>
-        <div class="skeleton skeleton-text"></div>
-        <div class="skeleton skeleton-text-sm"></div>
-      </td>
-      <td><div class="skeleton skeleton-text-sm"></div></td>
-      <td><div class="skeleton skeleton-text-sm"></div></td>
-      <td><div class="skeleton skeleton-btn"></div></td>
-    </tr>
-  `).join('');
-
-  fetch('/api/admin/menus')
-    .then(res => res.json())
-    .then(res => {
-      if (res.success) renderAdminTable(res.data);
-    });
-}
 
         function filterOrders(status, btnElement) {
             currentOrderFilter = status;
-
-            // ปรับแต่ง UI ของปุ่มเมื่อกดเลือก
             if (btnElement) {
                 const buttons = document.querySelectorAll('#orderFilterGroup .btn');
-                
-                // คืนค่า class เริ่มต้น (เส้นขอบ) ให้ทุกปุ่ม
                 buttons[0].className = 'btn btn-outline-dark';
                 buttons[1].className = 'btn btn-outline-warning text-dark';
                 buttons[2].className = 'btn btn-outline-primary';
                 buttons[3].className = 'btn btn-outline-success';
 
-                // เปลี่ยนปุ่มที่ถูกกดเป็นสีทึบ (Filled Button)
                 if (status === 'all') btnElement.className = 'btn btn-dark active';
                 else if (status === 'pending') btnElement.className = 'btn btn-warning active fw-bold';
                 else if (status === 'cooking') btnElement.className = 'btn btn-primary active fw-bold';
                 else if (status === 'served') btnElement.className = 'btn btn-success active fw-bold';
             }
-
             renderOrders();
         }
 
@@ -304,10 +251,8 @@ function loadAdminMenus() {
             let filtered = [];
 
             if (currentOrderFilter === 'all') {
-                // แท็บ "ทั้งหมด" -> แสดงเฉพาะออเดอร์ที่ยังไม่เสร็จ (pending และ cooking)
                 filtered = allOrders.filter(o => o.status === 'pending' || o.status === 'cooking');
             } else {
-                // แท็บอื่นๆ (รอยืนยัน, กำลังทำ, เสิร์ฟแล้ว) -> แสดงตามสถานะที่เลือก
                 filtered = allOrders.filter(o => o.status === currentOrderFilter);
             }
 
@@ -353,7 +298,7 @@ function loadAdminMenus() {
                                 <ul class="list-group list-group-flush border-top border-bottom mb-3">${itemsList}</ul>
                                 <div class="d-flex justify-content-between fw-bold fs-5 px-2 mb-3">
                                     <span>ราคารวม:</span>
-                                    <span class="text-danger">${order.total_price.toFixed(2)} ฿</span>
+                                    <span class="text-danger">${Number(order.total_price).toFixed(2)} ฿</span>
                                 </div>
                                 <div class="d-grid gap-1">
                                     ${order.status === 'pending' ? `
@@ -370,20 +315,32 @@ function loadAdminMenus() {
                 `;
             }).join('');
         }
+
         async function updateOrderStatus(id, status) {
             await fetch(`/api/admin/orders/${id}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status })
             });
-            fetchOrders();
+            fetchOrders(false);
         }
 
-        // --- 3. MENUS LOGIC ---
         let menusData = [];
         const menuModal = new bootstrap.Modal(document.getElementById('menuModal'));
 
         async function fetchMenus() {
+            const tbody = document.getElementById('menuTableBody');
+            tbody.innerHTML = Array(4).fill(0).map(() => `
+                <tr>
+                    <td class="text-center"><div class="skeleton skeleton-img"></div></td>
+                    <td><div class="skeleton skeleton-text"></div></td>
+                    <td><div class="skeleton skeleton-text-sm"></div></td>
+                    <td><div class="skeleton skeleton-text-sm"></div></td>
+                    <td><div class="skeleton skeleton-btn"></div></td>
+                    <td class="text-center"><div class="skeleton skeleton-btn"></div></td>
+                </tr>
+            `).join('');
+
             try {
                 const res = await fetch('/api/admin/menus');
                 const result = await res.json();
@@ -391,7 +348,10 @@ function loadAdminMenus() {
                     menusData = result.data;
                     renderMenusTable();
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
+            }
         }
 
         function renderMenusTable() {
@@ -406,7 +366,7 @@ function loadAdminMenus() {
                     <td><img src="${item.image_url || 'https://via.placeholder.com/50'}" class="rounded" style="width: 50px; height: 50px; object-fit: cover;"></td>
                     <td class="fw-bold">${item.name}</td>
                     <td><span class="badge bg-secondary">${item.category || 'ทั่วไป'}</span></td>
-                    <td>${item.price.toFixed(2)}</td>
+                    <td>${Number(item.price).toFixed(2)}</td>
                     <td>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" ${item.is_available ? 'checked' : ''} onchange="toggleMenuStatus('${item.id}', this.checked)">
@@ -429,12 +389,13 @@ function loadAdminMenus() {
         }
 
         function openEditMenuModal(id) {
-            const item = menusData.find(m => m.id === id);
+            const item = menusData.find(m => m.id == id);
             if (!item) return;
             document.getElementById('menuId').value = item.id;
             document.getElementById('menuName').value = item.name;
             document.getElementById('menuPrice').value = item.price;
             document.getElementById('menuCategory').value = item.category || 'อาหารจานเดียว';
+            document.getElementById('menuImageUrl').value = item.image_url || '';
             document.getElementById('modalTitle').innerText = 'แก้ไขเมนู';
             menuModal.show();
         }
@@ -442,18 +403,22 @@ function loadAdminMenus() {
         async function handleMenuSubmit(e) {
             e.preventDefault();
             const id = document.getElementById('menuId').value;
-            const formData = new FormData();
-            formData.append('name', document.getElementById('menuName').value);
-            formData.append('price', document.getElementById('menuPrice').value);
-            formData.append('category', document.getElementById('menuCategory').value);
-            
-            const file = document.getElementById('menuImage').files[0];
-            if (file) formData.append('image', file);
+            const payload = {
+                name: document.getElementById('menuName').value,
+                price: parseFloat(document.getElementById('menuPrice').value),
+                category: document.getElementById('menuCategory').value,
+                image_url: document.getElementById('menuImageUrl').value
+            };
 
             const url = id ? `/api/admin/menus/${id}` : '/api/admin/menus';
             const method = id ? 'PUT' : 'POST';
 
-            const res = await fetch(url, { method, body: formData });
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
             const result = await res.json();
             if (result.success) {
                 menuModal.hide();

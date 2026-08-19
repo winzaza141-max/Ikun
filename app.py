@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from db_config import get_db_connection
+from psycopg2.extras import Json
 import time
-import json
 
 app = Flask(__name__)
 
@@ -55,12 +55,14 @@ def create_order():
 
         conn = get_db_connection()
         cur = conn.cursor()
+        
+        # ใช้ Json(items) ส่งข้อมูลโครงสร้าง JSON/JSONB เข้า PostgreSQL
         cur.execute(
             """
             INSERT INTO orders (table_number, items, total_price, status, created_at)
             VALUES (%s, %s, %s, %s, %s) RETURNING id
             """,
-            (table_number, json.dumps(items), total_price, 'pending', time.time())
+            (table_number, Json(items), total_price, 'pending', time.time())
         )
         order_id = cur.fetchone()['id']
         conn.commit()

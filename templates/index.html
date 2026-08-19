@@ -11,34 +11,33 @@
         body { padding-bottom: 90px; }
         .menu-img { height: 140px; object-fit: cover; }
         .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; }
-        /* Animation สำหรับ Skeleton Shimmer */
-@keyframes shimmer {
-  0% { background-position: -200px 0; }
-  100% { background-position: 200px 0; }
-}
+        
+        /* Skeleton Shimmer */
+        @keyframes shimmer {
+          0% { background-position: -200px 0; }
+          100% { background-position: 200px 0; }
+        }
 
-.skeleton {
-  background: #f6f7f8;
-  background-image: linear-gradient(
-    90deg,
-    #f6f7f8 0%,
-    #edeef1 20%,
-    #f6f7f8 40%,
-    #f6f7f8 100%
-  );
-  background-repeat: no-repeat;
-  background-size: 800px 104px;
-  display: inline-block;
-  position: relative;
-  animation: shimmer 1.2s ease-in-out infinite;
-  border-radius: 6px;
-}
+        .skeleton {
+          background: #f6f7f8;
+          background-image: linear-gradient(
+            90deg,
+            #f6f7f8 0%,
+            #edeef1 20%,
+            #f6f7f8 40%,
+            #f6f7f8 100%
+          );
+          background-repeat: no-repeat;
+          background-size: 800px 104px;
+          display: inline-block;
+          animation: shimmer 1.2s ease-in-out infinite;
+          border-radius: 6px;
+        }
 
-/* ขนาด Skeleton รูปแบบต่างๆ */
-.skeleton-img { width: 60px; height: 60px; border-radius: 8px; }
-.skeleton-text { width: 100%; height: 16px; margin: 4px 0; }
-.skeleton-text-sm { width: 60%; height: 14px; }
-.skeleton-btn { width: 80px; height: 32px; border-radius: 6px; }
+        .skeleton-card-img { height: 140px; width: 100%; border-radius: 8px 8px 0 0; }
+        .skeleton-text { width: 100%; height: 16px; margin: 4px 0; }
+        .skeleton-text-sm { width: 50%; height: 14px; }
+        .skeleton-btn { width: 100%; height: 32px; border-radius: 50px; }
     </style>
 </head>
 <body class="bg-light">
@@ -53,7 +52,6 @@
 
     <div class="container py-3">
         <!-- ตัวเลือกหมวดหมู่ -->
-       <!-- ตัวเลือกหมวดหมู่ -->
         <div class="d-flex overflow-auto gap-2 mb-3 pb-2" id="categoryFilter">
             <button class="btn btn-danger btn-sm rounded-pill px-3 active" onclick="filterCategory('ทั้งหมด', this)">ทั้งหมด</button>
             <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="filterCategory('อาหารจานเดียว', this)">อาหารจานเดียว</button>
@@ -62,12 +60,10 @@
         </div>
 
         <!-- รายการเมนู -->
-        <div class="row g-3" id="menuContainer">
-            <div class="text-center py-5 text-muted">กำลังโหลดเมนูอาหาร...</div>
-        </div>
+        <div class="row g-3" id="menuContainer"></div>
     </div>
 
-    <!-- แถบตะกร้าสินค้าด้านล่าง (Fixed Bottom Bar) -->
+    <!-- แถบตะกร้าสินค้าด้านล่าง -->
     <div class="cart-bar bg-white border-top shadow-lg p-3">
         <div class="container d-flex justify-content-between align-items-center">
             <div>
@@ -89,9 +85,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div id="cartItemList" class="mb-3">
-                        <!-- รายการในตะกร้าจะถูกแทรกที่นี่ -->
-                    </div>
+                    <div id="cartItemList" class="mb-3"></div>
                     <hr>
                     <div class="d-flex justify-content-between fs-5 fw-bold">
                         <span>ราคารวมทั้งหมด:</span>
@@ -112,13 +106,26 @@
         document.getElementById('modalTableNum').innerText = tableNum;
 
         let allMenus = [];
-        let cart = []; // [{id, name, price, qty}]
+        let cart = [];
         const cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
 
-        // โหลดเมนูจาก Server
         document.addEventListener('DOMContentLoaded', fetchMenus);
 
         async function fetchMenus() {
+            const container = document.getElementById('menuContainer');
+            
+            // แสดง Skeleton 6 Card ล่วงหน้า
+            container.innerHTML = Array(6).fill(0).map(() => `
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden p-2">
+                        <div class="skeleton skeleton-card-img mb-2"></div>
+                        <div class="skeleton skeleton-text mb-1"></div>
+                        <div class="skeleton skeleton-text-sm mb-3"></div>
+                        <div class="skeleton skeleton-btn"></div>
+                    </div>
+                </div>
+            `).join('');
+
             try {
                 const res = await fetch('/api/menus');
                 const result = await res.json();
@@ -127,12 +134,10 @@
                     renderMenus(allMenus);
                 }
             } catch (err) {
-                document.getElementById('menuContainer').innerHTML = 
-                    `<div class="text-center text-danger py-5">เกิดข้อผิดพลาดในการโหลดเมนู</div>`;
+                container.innerHTML = `<div class="text-center text-danger py-5">เกิดข้อผิดพลาดในการโหลดเมนู</div>`;
             }
         }
 
-        // แสดงผลเมนู
         function renderMenus(menus) {
             const container = document.getElementById('menuContainer');
             if (menus.length === 0) {
@@ -147,7 +152,7 @@
                         <div class="card-body p-2 d-flex flex-column justify-content-between">
                             <div>
                                 <h6 class="card-title fw-bold mb-1 text-truncate">${item.name}</h6>
-                                <p class="text-danger fw-bold mb-2">${item.price.toFixed(2)} ฿</p>
+                                <p class="text-danger fw-bold mb-2">${Number(item.price).toFixed(2)} ฿</p>
                             </div>
                             <button class="btn btn-sm btn-outline-danger w-100 rounded-pill" onclick="addToCart('${item.id}', '${item.name}', ${item.price})">
                                 + เพิ่มลงตะกร้า
@@ -158,10 +163,7 @@
             `).join('');
         }
 
-        // กรองหมวดหมู่
-        // กรองหมวดหมู่ + อัปเดต UI ปุ่มที่เลือก
         function filterCategory(cat, btnElement) {
-            // 1. กรองข้อมูลเมนู
             if (cat === 'ทั้งหมด') {
                 renderMenus(allMenus);
             } else {
@@ -169,47 +171,19 @@
                 renderMenus(filtered);
             }
 
-            // 2. ปรับ Style ของปุ่ม ให้ปุ่มที่ถูกเลือกกลายเป็นสีเข้ม (btn-danger)
             if (btnElement) {
-                // ลบ class สีเข้ม ออกจากทุกปุ่ม แล้วคืนค่าเป็นปุ่มเส้นขอบ (btn-outline-danger)
                 const buttons = document.querySelectorAll('#categoryFilter button');
                 buttons.forEach(btn => {
                     btn.classList.remove('btn-danger', 'active');
                     btn.classList.add('btn-outline-danger');
                 });
-
-                // ใส่ class สีเข้ม ให้กับปุ่มที่เพิ่งถูกคลิก
                 btnElement.classList.remove('btn-outline-danger');
                 btnElement.classList.add('btn-danger', 'active');
             }
         }
-// สำหรับตารางจัดการเมนูอาหาร Admin
-function loadAdminMenus() {
-  const tbody = document.getElementById('menuTableBody');
-  
-  // แสดงแถบ Skeleton ในตารางหลอกไว้ 4 แถว
-  tbody.innerHTML = Array(4).fill(0).map(() => `
-    <tr>
-      <td><div class="skeleton skeleton-img"></div></td>
-      <td>
-        <div class="skeleton skeleton-text"></div>
-        <div class="skeleton skeleton-text-sm"></div>
-      </td>
-      <td><div class="skeleton skeleton-text-sm"></div></td>
-      <td><div class="skeleton skeleton-text-sm"></div></td>
-      <td><div class="skeleton skeleton-btn"></div></td>
-    </tr>
-  `).join('');
 
-  fetch('/api/admin/menus')
-    .then(res => res.json())
-    .then(res => {
-      if (res.success) renderAdminTable(res.data);
-    });
-}
-        // เพิ่มของลงตะกร้า
         function addToCart(id, name, price) {
-            const index = cart.findIndex(item => item.id === id);
+            const index = cart.findIndex(item => item.id == id);
             if (index > -1) {
                 cart[index].qty += 1;
             } else {
@@ -217,14 +191,12 @@ function loadAdminMenus() {
             }
             updateCartBar();
             
-            // Toast แจ้งเตือนเบาๆ
             const Toast = Swal.mixin({
                 toast: true, position: 'top-end', showConfirmButton: false, timer: 1000
             });
             Toast.fire({ icon: 'success', title: `เพิ่ม ${name} แล้ว` });
         }
 
-        // อัปเดตตัวเลขบนแถบด้านล่าง
         function updateCartBar() {
             const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
             const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
@@ -234,7 +206,6 @@ function loadAdminMenus() {
             document.getElementById('modalCartTotal').innerText = totalPrice.toFixed(2);
         }
 
-        // เปิดดูตะกร้า
         function openCartModal() {
             if (cart.length === 0) {
                 Swal.fire('ตะกร้าว่างเปล่า', 'กรุณาเลือกอาหารก่อนครับ', 'info');
@@ -259,7 +230,6 @@ function loadAdminMenus() {
             cartModal.show();
         }
 
-        // เพิ่ม/ลด จำนวนในตะกร้า
         function changeQty(index, delta) {
             cart[index].qty += delta;
             if (cart[index].qty <= 0) {
@@ -273,10 +243,8 @@ function loadAdminMenus() {
             }
         }
 
-        // ส่ง Order ไปยัง Backend
         async function submitOrder() {
             if (cart.length === 0) return;
-
             const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
             try {
@@ -293,7 +261,7 @@ function loadAdminMenus() {
                 const result = await res.json();
                 if (result.success) {
                     cartModal.hide();
-                    cart = []; // ล้างตะกร้า
+                    cart = [];
                     updateCartBar();
                     
                     Swal.fire({
