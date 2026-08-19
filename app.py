@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
-from firebase_config import db
+from db_config import get_db_connection
 import time
-from firebase_admin import firestore
+import json
 
 app = Flask(__name__)
 
@@ -31,9 +31,12 @@ def admin_dashboard():
 @app.route('/api/menus', methods=['GET'])
 def get_customer_menus():
     try:
-        # เปลี่ยนใช้ .get() เพื่อป้องกัน gRPC stream error บน Render
-        docs = db.collection('menus').where('is_available', '==', True).get()
-        menus = [doc.to_dict() | {"id": doc.id} for doc in docs]
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM menus WHERE is_available = TRUE ORDER BY id DESC")
+        menus = cur.fetchall()
+        cur.close()
+        conn.close()
         return jsonify({"success": True, "data": menus}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -50,16 +53,21 @@ def create_order():
         if not items or len(items) == 0:
             return jsonify({"success": False, "error": "ไม่มีรายการอาหารในตะกร้า"}), 400
 
-        order_data = {
-            "table_number": table_number,
-            "items": items,
-            "total_price": total_price,
-            "status": "pending",  # pending, cooking, served, cancelled
-            "created_at": time.time()
-        }
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO orders (table_number, items, total_price, status, created_at)
+            VALUES (%s, %s, %s, %s, %s) RETURNING id
+            """,
+            (table_number, json.dumps(items), total_price, 'pending', time.time())
+        )
+        order_id = cur.fetchone()['id']
+        conn.commit()
+        cur.close()
+        conn.close()
 
-        doc_ref = db.collection('orders').add(order_data)
-        return jsonify({"success": True, "order_id": doc_ref[1].id, "message": "ส่งคำสั่งซื้อเรียบร้อยแล้ว!"}), 201
+        return jsonify({"success": True, "order_id": order_id, "message": "ส่งคำสั่งซื้อเรียบร้อยแล้ว!"}), 201
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
@@ -72,18 +80,20 @@ def create_order():
 @app.route('/api/admin/menus', methods=['GET'])
 def get_all_menus_admin():
     try:
-        # เปลี่ยนใช้ .get() เพื่อความเสถียร
-        docs = db.collection('menus').get()
-        menus = [doc.to_dict() | {"id": doc.id} for doc in docs]
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM menus ORDER BY id DESC")
+        menus = cur.fetchall()
+        cur.close()
+        conn.close()
         return jsonify({"success": True, "data": menus}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
-# เพิ่มเมนูใหม่ (รับ URL รูปภาพแทนการอัปโหลดไฟล์)
+# เพิ่มเมนูใหม่
 @app.route('/api/admin/menus', methods=['POST'])
 def add_menu_admin():
     try:
-        # รองรับทั้งแบบ JSON และ Form-data
         data = request.json if request.is_json else request.form
         
         name = data.get('name')
@@ -91,22 +101,26 @@ def add_menu_admin():
         category = data.get('category')
         image_url = data.get('image_url', '')
 
-        menu_data = {
-            "name": name,
-            "price": price,
-            "category": category,
-            "image_url": image_url,
-            "is_available": True,
-            "created_at": time.time()
-        }
-        
-        doc_ref = db.collection('menus').add(menu_data)
-        return jsonify({"success": True, "id": doc_ref[1].id, "message": "เพิ่มเมนูสำเร็จ"}), 201
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO menus (name, price, category, image_url, is_available, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
+            """,
+            (name, price, category, image_url, True, time.time())
+        )
+        menu_id = cur.fetchone()['id']
+        conn.commit()
+        cur.close()
+        conn.close()
+
+        return jsonify({"success": True, "id": menu_id, "message": "เพิ่มเมนูสำเร็จ"}), 201
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 # แก้ไขข้อมูลเมนู
-@app.route('/api/admin/menus/<menu_id>', methods=['PUT'])
+@app.route('/api/admin/menus/<int:menu_id>', methods=['PUT'])
 def update_menu_admin(menu_id):
     try:
         data = request.json if request.is_json else request.form
@@ -116,37 +130,68 @@ def update_menu_admin(menu_id):
         category = data.get('category')
         image_url = data.get('image_url')
 
-        update_data = {
-            "name": name,
-            "price": price,
-            "category": category
-        }
+        conn = get_db_connection()
+        cur = conn.cursor()
 
         if image_url is not None:
-            update_data["image_url"] = image_url
+            cur.execute(
+                """
+                UPDATE menus 
+                SET name = %s, price = %s, category = %s, image_url = %s
+                WHERE id = %s
+                """,
+                (name, price, category, image_url, menu_id)
+            )
+        else:
+            cur.execute(
+                """
+                UPDATE menus 
+                SET name = %s, price = %s, category = %s
+                WHERE id = %s
+                """,
+                (name, price, category, menu_id)
+            )
 
-        db.collection('menus').document(menu_id).update(update_data)
+        conn.commit()
+        cur.close()
+        conn.close()
+
         return jsonify({"success": True, "message": "อัปเดตเมนูสำเร็จ"}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 # สลับสถานะ เปิด/ปิด การขาย
-@app.route('/api/admin/menus/<menu_id>/toggle-status', methods=['PATCH'])
+@app.route('/api/admin/menus/<int:menu_id>/toggle-status', methods=['PATCH'])
 def toggle_menu_status(menu_id):
     try:
         data = request.json
         is_available = data.get('is_available')
         
-        db.collection('menus').document(menu_id).update({"is_available": is_available})
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE menus SET is_available = %s WHERE id = %s",
+            (is_available, menu_id)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+
         return jsonify({"success": True, "message": "เปลี่ยนสถานะสำเร็จ"}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 # ลบเมนู
-@app.route('/api/admin/menus/<menu_id>', methods=['DELETE'])
+@app.route('/api/admin/menus/<int:menu_id>', methods=['DELETE'])
 def delete_menu_admin(menu_id):
     try:
-        db.collection('menus').document(menu_id).delete()
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM menus WHERE id = %s", (menu_id,))
+        conn.commit()
+        cur.close()
+        conn.close()
+
         return jsonify({"success": True, "message": "ลบเมนูสำเร็จ"}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
@@ -160,25 +205,34 @@ def delete_menu_admin(menu_id):
 @app.route('/api/admin/orders', methods=['GET'])
 def get_admin_orders():
     try:
-        # เปลี่ยนใช้ .get() แก้ปัญหา Worker SIGKILL / timeout
-        docs = db.collection('orders').order_by('created_at', direction=firestore.Query.DESCENDING).get()
-        orders = []
-        for doc in docs:
-            data = doc.to_dict()
-            data['id'] = doc.id
-            orders.append(data)
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM orders ORDER BY created_at DESC")
+        orders = cur.fetchall()
+        cur.close()
+        conn.close()
+
         return jsonify({"success": True, "data": orders}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
 # อัปเดตสถานะออเดอร์
-@app.route('/api/admin/orders/<order_id>/status', methods=['PATCH'])
+@app.route('/api/admin/orders/<int:order_id>/status', methods=['PATCH'])
 def update_order_status(order_id):
     try:
         data = request.json
         new_status = data.get('status')
         
-        db.collection('orders').document(order_id).update({"status": new_status})
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "UPDATE orders SET status = %s WHERE id = %s",
+            (new_status, order_id)
+        )
+        conn.commit()
+        cur.close()
+        conn.close()
+
         return jsonify({"success": True, "message": "อัปเดตสถานะเรียบร้อย"}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
