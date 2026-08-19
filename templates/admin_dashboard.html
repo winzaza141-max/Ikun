@@ -6,10 +6,34 @@
     <title>ระบบจัดการร้าน - ข้าวกล่องไอคุน</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <!--  วิธีที่ถูกต้องในการดึง CSS ใน Flask -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* จัด Layout ให้ Sidebar อยู่ซ้าย Content อยู่ขวา */
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #ffffff;
+            border-right: 1px solid #dee2e6;
+            z-index: 1000;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 30px;
+            width: calc(100% - 260px);
+        }
+
         .order-card { transition: all 0.3s ease; border-left: 6px solid #ccc; }
         .status-pending { border-left-color: #ffc107; background-color: #fffdf5; }
         .status-cooking { border-left-color: #0d6efd; background-color: #f8fafe; }
@@ -45,22 +69,22 @@
         .skeleton-card { height: 220px; width: 100%; border-radius: 8px; }
     </style>
 </head>
-<body class="bg-light">
+<body>
 
-    <!-- Sidebar Menu -->
+    <!-- Sidebar Menu (ฝั่งซ้าย) -->
     <div class="sidebar d-flex flex-column p-3">
         <div class="d-flex align-items-center mb-4 px-2">
             <span class="fs-4 fw-bold text-danger">🍱 ข้าวกล่องไอคุน</span>
         </div>
-        <hr class="text-secondary">
+        <hr class="text-secondary mt-0">
         <ul class="nav nav-pills flex-column mb-auto">
-            <li class="nav-item">
-                <a class="nav-link active" id="tab-orders" onclick="switchTab('orders')">
+            <li class="nav-item mb-1">
+                <a class="nav-link active style-tab" id="tab-orders" onclick="switchTab('orders')" style="cursor: pointer;">
                     <i class="bi bi-receipt me-2"></i> รับออเดอร์ (ห้องครัว)
                 </a>
             </li>
-            <li>
-                <a class="nav-link" id="tab-menus" onclick="switchTab('menus')">
+            <li class="nav-item">
+                <a class="nav-link style-tab" id="tab-menus" onclick="switchTab('menus')" style="cursor: pointer;">
                     <i class="bi bi-card-checklist me-2"></i> จัดการเมนูอาหาร
                 </a>
             </li>
@@ -71,7 +95,7 @@
         </div>
     </div>
 
-    <!-- Main Content Area -->
+    <!-- Main Content Area (ฝั่งขวา) -->
     <div class="main-content">
         
         <!-- SECTION 1: หน้ารับออเดอร์ -->
@@ -87,7 +111,7 @@
             </div>
 
             <!-- Filter Status -->
-            <div class="btn-group mb-3" id="orderFilterGroup" role="group">
+            <div class="btn-group mb-4" id="orderFilterGroup" role="group">
                 <button type="button" class="btn btn-dark active" onclick="filterOrders('all', this)">ทั้งหมด</button>
                 <button type="button" class="btn btn-outline-warning text-dark" onclick="filterOrders('pending', this)">⏳ รอยืนยัน</button>
                 <button type="button" class="btn btn-outline-primary" onclick="filterOrders('cooking', this)">🍳 กำลังทำ</button>
@@ -181,7 +205,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function switchTab(tabName) {
-            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.style-tab').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tabName}`).classList.add('active');
 
             if (tabName === 'orders') {
