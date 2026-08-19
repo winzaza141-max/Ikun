@@ -31,7 +31,8 @@ def admin_dashboard():
 @app.route('/api/menus', methods=['GET'])
 def get_customer_menus():
     try:
-        docs = db.collection('menus').where('is_available', '==', True).stream()
+        # เปลี่ยนใช้ .get() เพื่อป้องกัน gRPC stream error บน Render
+        docs = db.collection('menus').where('is_available', '==', True).get()
         menus = [doc.to_dict() | {"id": doc.id} for doc in docs]
         return jsonify({"success": True, "data": menus}), 200
     except Exception as e:
@@ -71,7 +72,8 @@ def create_order():
 @app.route('/api/admin/menus', methods=['GET'])
 def get_all_menus_admin():
     try:
-        docs = db.collection('menus').stream()
+        # เปลี่ยนใช้ .get() เพื่อความเสถียร
+        docs = db.collection('menus').get()
         menus = [doc.to_dict() | {"id": doc.id} for doc in docs]
         return jsonify({"success": True, "data": menus}), 200
     except Exception as e:
@@ -158,7 +160,8 @@ def delete_menu_admin(menu_id):
 @app.route('/api/admin/orders', methods=['GET'])
 def get_admin_orders():
     try:
-        docs = db.collection('orders').order_by('created_at', direction=firestore.Query.DESCENDING).stream()
+        # เปลี่ยนใช้ .get() แก้ปัญหา Worker SIGKILL / timeout
+        docs = db.collection('orders').order_by('created_at', direction=firestore.Query.DESCENDING).get()
         orders = []
         for doc in docs:
             data = doc.to_dict()
@@ -186,4 +189,3 @@ def update_order_status(order_id):
 # ==========================================
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-    
