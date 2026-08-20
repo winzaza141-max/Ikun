@@ -6,7 +6,6 @@
     <title>ระบบจัดการร้าน - ข้าวกล่องไอคุน</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
@@ -15,7 +14,6 @@
             background-color: #f4f6f9;
         }
 
-        /* Sidebar Responsive */
         .sidebar {
             width: 260px;
             height: 100vh;
@@ -49,101 +47,43 @@
         }
 
         @media (max-width: 991.98px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            .sidebar-overlay.show {
-                display: block;
-            }
-            .main-content {
-                margin-left: 0;
-                width: 100%;
-                padding: 15px;
-                padding-bottom: 110px;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.show { transform: translateX(0); }
+            .sidebar-overlay.show { display: block; }
+            .main-content { margin-left: 0; width: 100%; padding: 15px; padding-bottom: 110px; }
         }
 
-        /* Glassmorphism Buttons */
         .btn-glass {
             background: rgba(255, 255, 255, 0.85) !important;
             backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(210, 215, 225, 0.8) !important;
             border-radius: 50px !important;
             color: #4a5568 !important;
             font-weight: 600;
             padding: 8px 18px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
         }
 
-        .btn-glass:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-        }
-
-        .btn-glass.active-all {
-            background: rgba(30, 41, 59, 0.9) !important;
-            color: #ffffff !important;
-            border-color: rgba(30, 41, 59, 0.3) !important;
-            box-shadow: 0 8px 20px -4px rgba(30, 41, 59, 0.4) !important;
-        }
-
-        .btn-glass.active-pending {
-            background: rgba(245, 158, 11, 0.18) !important;
-            color: #b45309 !important;
-            border-color: rgba(245, 158, 11, 0.4) !important;
-            box-shadow: 0 8px 20px -4px rgba(245, 158, 11, 0.4) !important;
-        }
-
-        .btn-glass.active-cooking {
-            background: rgba(59, 130, 246, 0.18) !important;
-            color: #1d4ed8 !important;
-            border-color: rgba(59, 130, 246, 0.4) !important;
-            box-shadow: 0 8px 20px -4px rgba(59, 130, 246, 0.4) !important;
-        }
-
-        .btn-glass.active-served {
-            background: rgba(16, 185, 129, 0.18) !important;
-            color: #047857 !important;
-            border-color: rgba(16, 185, 129, 0.4) !important;
-            box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.4) !important;
-        }
+        .btn-glass.active-all { background: rgba(30, 41, 59, 0.9) !important; color: #ffffff !important; }
+        .btn-glass.active-pending { background: rgba(245, 158, 11, 0.18) !important; color: #b45309 !important; }
+        .btn-glass.active-cooking { background: rgba(59, 130, 246, 0.18) !important; color: #1d4ed8 !important; }
+        .btn-glass.active-served { background: rgba(16, 185, 129, 0.18) !important; color: #047857 !important; }
 
         .btn-glass-danger {
             background: rgba(239, 68, 68, 0.1) !important;
             color: #dc2626 !important;
             border: 1px solid rgba(239, 68, 68, 0.3) !important;
             border-radius: 50px !important;
-            box-shadow: 0 6px 16px -4px rgba(239, 68, 68, 0.25);
-            transition: all 0.3s ease;
-            font-weight: 500;
         }
 
-        .btn-glass-danger:hover {
-            background: rgba(239, 68, 68, 0.2) !important;
-            transform: translateY(-2px);
-        }
-
-        /* Order Cards - Glassmorphism UI */
         .order-card {
             border: 1px solid rgba(255, 255, 255, 0.8) !important;
             border-radius: 20px !important;
             background: rgba(255, 255, 255, 0.85) !important;
-            backdrop-filter: blur(12px) saturate(180%);
-            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            backdrop-filter: blur(12px);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             transition: all 0.3s ease;
-            overflow: hidden;
             position: relative;
-        }
-
-        .order-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
         }
 
         .order-card.selected {
@@ -151,21 +91,6 @@
             background: rgba(254, 242, 242, 0.95) !important;
         }
 
-        .order-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 5px;
-        }
-
-        .status-pending::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
-        .status-cooking::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-        .status-served::before { background: linear-gradient(90deg, #10b981, #34d399); }
-        .status-cancelled::before { background: linear-gradient(90deg, #ef4444, #f87171); }
-
-        /* Checkboxes */
         .custom-checkbox {
             width: 20px;
             height: 20px;
@@ -173,71 +98,25 @@
             accent-color: #dc2626;
         }
 
-        /* Action Buttons Inside Card */
-        .btn-action-primary {
-            background: rgba(59, 130, 246, 0.12) !important;
-            color: #2563eb !important;
-            border: 1px solid rgba(59, 130, 246, 0.3) !important;
-            border-radius: 50px !important;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-        }
-        .btn-action-primary:hover {
-            background: rgba(59, 130, 246, 0.22) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
-        }
-
-        .btn-action-success {
-            background: rgba(16, 185, 129, 0.12) !important;
-            color: #059669 !important;
-            border: 1px solid rgba(16, 185, 129, 0.3) !important;
-            border-radius: 50px !important;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
-        }
-        .btn-action-success:hover {
-            background: rgba(16, 185, 129, 0.22) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
-        }
-
-        .btn-action-cancel {
-            background: rgba(239, 68, 68, 0.08) !important;
-            color: #dc2626 !important;
-            border: 1px solid rgba(239, 68, 68, 0.2) !important;
-            border-radius: 50px !important;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .btn-action-cancel:hover {
-            background: rgba(239, 68, 68, 0.18) !important;
-            transform: translateY(-1px);
-        }
-
-        /* Glass Badges */
         .glass-badge {
             border-radius: 50px;
             padding: 5px 12px;
             font-size: 0.85rem;
             font-weight: 600;
         }
-        .glass-badge-pending { background: rgba(245, 158, 11, 0.15); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.3); }
-        .glass-badge-cooking { background: rgba(59, 130, 246, 0.15); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.3); }
-        .glass-badge-served { background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .glass-badge-cancelled { background: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .glass-badge-pending { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+        .glass-badge-cooking { background: rgba(59, 130, 246, 0.15); color: #2563eb; }
+        .glass-badge-served { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .glass-badge-cancelled { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
 
-        /* Floating Batch Action Bar */
+        /* Floating Bar Separated */
         .floating-action-bar {
             position: fixed;
             bottom: 25px;
             left: 50%;
             transform: translateX(-50%) translateY(120px);
-            background: rgba(15, 23, 42, 0.88);
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 50px;
             padding: 12px 28px;
@@ -246,41 +125,19 @@
             display: flex;
             align-items: center;
             gap: 15px;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .floating-action-bar.show {
             transform: translateX(-50%) translateY(0);
         }
-
-        /* Skeleton Loading */
-        @keyframes shimmer {
-          0% { background-position: -200px 0; }
-          100% { background-position: 200px 0; }
-        }
-
-        .skeleton {
-          background: #f6f7f8;
-          background-image: linear-gradient(90deg, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
-          background-repeat: no-repeat;
-          background-size: 800px 104px;
-          display: inline-block;
-          animation: shimmer 1.2s ease-in-out infinite;
-          border-radius: 6px;
-        }
-
-        .skeleton-img { width: 50px; height: 50px; border-radius: 8px; }
-        .skeleton-text { width: 100%; height: 16px; margin: 4px 0; }
-        .skeleton-text-sm { width: 60%; height: 14px; }
-        .skeleton-btn { width: 60px; height: 30px; border-radius: 6px; }
     </style>
 </head>
 <body>
 
-    <!-- Overlay มือถือ -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-    <!-- Sidebar Menu -->
+    <!-- Sidebar -->
     <div class="sidebar d-flex flex-column p-3" id="sidebarMenu">
         <div class="d-flex align-items-center justify-content-between mb-4 px-2">
             <span class="fs-4 fw-bold text-danger">🍱 ข้าวกล่องไอคุน</span>
@@ -289,50 +146,43 @@
         <hr class="text-secondary mt-0">
         <ul class="nav nav-pills flex-column mb-auto">
             <li class="nav-item mb-1">
-                <a class="nav-link active style-tab" id="tab-orders" onclick="switchTab('orders')" style="cursor: pointer;">
+                <a class="nav-link active" id="tab-orders" onclick="switchTab('orders')" style="cursor: pointer;">
                     <i class="bi bi-receipt me-2"></i> รับออเดอร์ (ห้องครัว)
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link style-tab" id="tab-menus" onclick="switchTab('menus')" style="cursor: pointer;">
+                <a class="nav-link" id="tab-menus" onclick="switchTab('menus')" style="cursor: pointer;">
                     <i class="bi bi-card-checklist me-2"></i> จัดการเมนูอาหาร
                 </a>
             </li>
         </ul>
         <hr class="text-secondary">
-        <div class="px-2 text-muted small">
-            ระบบจัดการหลังร้าน v1.0
-        </div>
+        <div class="px-2 text-muted small">ระบบจัดการหลังร้าน v1.0</div>
     </div>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <div class="main-content">
-        
-        <!-- Header Toggle ปุ่มเปิด Sidebar หน้าจอมือถือ -->
         <div class="d-lg-none mb-3">
-            <button class="btn btn-glass" onclick="toggleSidebar()">
-                <i class="bi bi-list fs-5 me-1"></i> เมนู
-            </button>
+            <button class="btn btn-glass" onclick="toggleSidebar()"><i class="bi bi-list fs-5 me-1"></i> เมนู</button>
         </div>
 
-        <!-- SECTION 1: หน้ารับออเดอร์ -->
+        <!-- Section 1: Orders -->
         <div id="section-orders">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h3 class="fw-bold mb-0">🍳 รายการสั่งอาหาร (Orders)</h3>
-                    <small class="text-muted">ระบบจะอัปเดตข้อมูลให้อัตโนมัติทุกๆ 5 วินาที</small>
+                    <small class="text-muted">อัปเดตข้อมูลอัตโนมัติทุกๆ 5 วินาที</small>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-glass btn-sm px-3" onclick="toggleSelectAllOrders(this)" id="btnSelectAllOrders">
                         <i class="bi bi-check2-square me-1"></i> เลือกทั้งหมด
                     </button>
                     <button class="btn btn-glass-danger btn-sm px-3" onclick="fetchOrders(true)">
-                        <i class="bi bi-arrow-clockwise me-1"></i> รีเฟรชข้อมูล
+                        <i class="bi bi-arrow-clockwise me-1"></i> รีเฟรช
                     </button>
                 </div>
             </div>
 
-            <!-- Filter Status -->
             <div class="d-flex gap-2 mb-4 flex-wrap" id="orderFilterGroup">
                 <button type="button" class="btn btn-glass active-all" onclick="filterOrders('all', this)">ทั้งหมด</button>
                 <button type="button" class="btn btn-glass" onclick="filterOrders('pending', this)">⏳ รอยืนยัน</button>
@@ -340,16 +190,15 @@
                 <button type="button" class="btn btn-glass" onclick="filterOrders('served', this)">✅ เสิร์ฟแล้ว</button>
             </div>
 
-            <!-- Cards Container -->
             <div class="row g-3" id="ordersContainer"></div>
         </div>
 
-        <!-- SECTION 2: หน้าจัดการเมนูอาหาร -->
+        <!-- Section 2: Menus -->
         <div id="section-menus" style="display: none;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h3 class="fw-bold mb-0">🍱 จัดการเมนูอาหาร</h3>
-                    <small class="text-muted">เพิ่ม แก้ไข หรือเปิด/ปิดการขายเมนูอาหาร</small>
+                    <small class="text-muted">เพิ่ม แก้ไข หรือลบรายการเมนูอาหารในระบบ</small>
                 </div>
                 <button class="btn btn-danger rounded-pill px-3" onclick="openAddMenuModal()">
                     <i class="bi bi-plus-lg me-1"></i> เพิ่มเมนูใหม่
@@ -379,38 +228,23 @@
                 </div>
             </div>
         </div>
-
     </div>
 
-    <!-- Floating Action Bar 1: สำหรับหน้ารับออเดอร์ -->
+    <!-- Bar สำหรับหน้า Order -->
     <div class="floating-action-bar" id="orderActionBar">
-        <span class="text-white fw-semibold me-2">
-            เลือกออเดอร์ <span class="badge bg-danger rounded-pill px-2.5 py-1" id="selectedOrdersCount">0</span> รายการ
-        </span>
-        <div class="vr bg-secondary opacity-50 my-1"></div>
-        <button class="btn btn-sm btn-primary rounded-pill px-3 fw-medium" onclick="batchUpdateOrderStatus('cooking')">
-            🍳 กำลังทำ
-        </button>
-        <button class="btn btn-sm btn-success rounded-pill px-3 fw-medium" onclick="batchUpdateOrderStatus('served')">
-            ✅ พร้อมเสิร์ฟ
-        </button>
-        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-medium" onclick="batchDeleteOrders()">
-            🗑️ ลบรายการ
-        </button>
+        <span class="text-white fw-semibold me-2">เลือกออเดอร์ <span class="badge bg-danger rounded-pill px-2" id="selectedOrdersCount">0</span> รายการ</span>
+        <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="batchUpdateOrderStatus('cooking')">🍳 กำลังทำ</button>
+        <button class="btn btn-sm btn-success rounded-pill px-3" onclick="batchUpdateOrderStatus('served')">✅ พร้อมเสิร์ฟ</button>
+        <button class="btn btn-sm btn-danger rounded-pill px-3" onclick="batchDeleteOrders()">🗑️ ลบรายการ</button>
     </div>
 
-    <!-- Floating Action Bar 2: สำหรับหน้าจัดการเมนู -->
+    <!-- Bar สำหรับหน้า Menu -->
     <div class="floating-action-bar" id="menuActionBar">
-        <span class="text-white fw-semibold me-2">
-            เลือกเมนู <span class="badge bg-danger rounded-pill px-2.5 py-1" id="selectedMenusCount">0</span> รายการ
-        </span>
-        <div class="vr bg-secondary opacity-50 my-1"></div>
-        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-medium" onclick="batchDeleteMenus()">
-            🗑️ ลบเมนูที่เลือก
-        </button>
+        <span class="text-white fw-semibold me-2">เลือกเมนู <span class="badge bg-danger rounded-pill px-2" id="selectedMenusCount">0</span> รายการ</span>
+        <button class="btn btn-sm btn-danger rounded-pill px-3" onclick="batchDeleteMenus()">🗑️ ลบเมนูที่เลือก</button>
     </div>
 
-    <!-- Modal เพิ่ม/แก้ไข เมนู -->
+    <!-- Modal เพิ่ม/แก้ไข Menu -->
     <div class="modal fade" id="menuModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content rounded-4 border-0">
@@ -422,13 +256,13 @@
                     <div class="modal-body">
                         <input type="hidden" id="menuId">
                         <div class="mb-3">
-                            <label class="form-label">ชื่อเมนูอาหาร <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="menuName" required placeholder="เช่น ข้าวผัดกระเพราไก่">
+                            <label class="form-label">ชื่อเมนู <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="menuName" required>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">ราคา (บาท) <span class="text-danger">*</span></label>
-                                <input type="number" step="0.5" class="form-control" id="menuPrice" required placeholder="50">
+                                <input type="number" step="0.5" class="form-control" id="menuPrice" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">หมวดหมู่ <span class="text-danger">*</span></label>
@@ -441,14 +275,13 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">รูปภาพเมนู (URL)</label>
-                            <input type="text" class="form-control" id="menuImageUrl" placeholder="https://example.com/image.jpg">
-                            <small class="text-muted">ใส่ URL รูปภาพของเมนูอาหาร</small>
+                            <label class="form-label">URL รูปภาพ</label>
+                            <input type="text" class="form-control" id="menuImageUrl">
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">ยกเลิก</button>
-                        <button type="submit" class="btn btn-danger rounded-pill">บันทึกข้อมูล</button>
+                        <button type="submit" class="btn btn-danger rounded-pill">บันทึก</button>
                     </div>
                 </form>
             </div>
@@ -460,6 +293,10 @@
         let currentTab = 'orders';
         let selectedOrderIds = new Set();
         let selectedMenuIds = new Set();
+        let allOrders = [];
+        let menusData = [];
+        let currentOrderFilter = 'all';
+        const menuModal = new bootstrap.Modal(document.getElementById('menuModal'));
 
         function toggleSidebar() {
             document.getElementById('sidebarMenu').classList.toggle('show');
@@ -468,14 +305,12 @@
 
         function switchTab(tabName) {
             currentTab = tabName;
-            document.querySelectorAll('.style-tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tabName}`).classList.add('active');
+            document.getElementById('tab-orders').classList.toggle('active', tabName === 'orders');
+            document.getElementById('tab-menus').classList.toggle('active', tabName === 'menus');
 
-            if (window.innerWidth < 992) {
-                toggleSidebar();
-            }
+            if (window.innerWidth < 992) toggleSidebar();
 
-            // เคลียร์ค่าที่เลือกไว้ในทั้งสองหน้า เพื่อไม่ให้ Action bar ค้าง
+            // เคลียร์รายการที่เลือกไว้ทั้งหมดเมื่อสลับหน้า
             selectedOrderIds.clear();
             selectedMenuIds.clear();
             updateActionBars();
@@ -495,7 +330,6 @@
             const orderBar = document.getElementById('orderActionBar');
             const menuBar = document.getElementById('menuActionBar');
 
-            // อัปเดตหน้า ออเดอร์
             if (currentTab === 'orders' && selectedOrderIds.size > 0) {
                 document.getElementById('selectedOrdersCount').innerText = selectedOrderIds.size;
                 orderBar.classList.add('show');
@@ -503,7 +337,6 @@
                 orderBar.classList.remove('show');
             }
 
-            // อัปเดตหน้า เมนู
             if (currentTab === 'menus' && selectedMenuIds.size > 0) {
                 document.getElementById('selectedMenusCount').innerText = selectedMenuIds.size;
                 menuBar.classList.add('show');
@@ -512,33 +345,13 @@
             }
         }
 
-        /* ------------------ SECTION 1: ORDERS logic ------------------ */
-
-        let allOrders = [];
-        let currentOrderFilter = 'all';
-
+        /* ------------------ ORDERS LOGIC ------------------ */
         document.addEventListener('DOMContentLoaded', () => {
             fetchOrders(true);
-            setInterval(() => {
-                if (currentTab === 'orders') fetchOrders(false);
-            }, 5000);
+            setInterval(() => { if (currentTab === 'orders') fetchOrders(false); }, 5000);
         });
 
         async function fetchOrders(showSkeleton = false) {
-            const container = document.getElementById('ordersContainer');
-            if (showSkeleton && allOrders.length === 0) {
-                container.innerHTML = Array(4).fill(0).map(() => `
-                    <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card p-3 shadow-sm border-0 rounded-4">
-                            <div class="skeleton skeleton-text mb-2"></div>
-                            <div class="skeleton skeleton-text-sm mb-3"></div>
-                            <div class="skeleton skeleton-text mb-2"></div>
-                            <div class="skeleton skeleton-btn w-100 mt-2"></div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
             try {
                 const res = await fetch('/api/admin/orders');
                 const result = await res.json();
@@ -546,134 +359,47 @@
                     allOrders = result.data;
                     renderOrders();
                 }
-            } catch (err) { 
-                console.error(err);
-                if (showSkeleton) container.innerHTML = `<div class="col-12 text-center py-5 text-danger fs-5">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
-            }
+            } catch (err) { console.error(err); }
         }
 
         function filterOrders(status, btnElement) {
             currentOrderFilter = status;
             if (btnElement) {
-                const buttons = document.querySelectorAll('#orderFilterGroup .btn');
-                buttons.forEach(btn => btn.className = 'btn btn-glass');
-
-                if (status === 'all') btnElement.className = 'btn btn-glass active-all';
-                else if (status === 'pending') btnElement.className = 'btn btn-glass active-pending';
-                else if (status === 'cooking') btnElement.className = 'btn btn-glass active-cooking';
-                else if (status === 'served') btnElement.className = 'btn btn-glass active-served';
+                document.querySelectorAll('#orderFilterGroup .btn').forEach(b => b.className = 'btn btn-glass');
+                btnElement.className = `btn btn-glass active-${status}`;
             }
             renderOrders();
         }
 
-        function calculateBillNumbers(orders) {
-            const sorted = [...orders].sort((a, b) => a.created_at - b.created_at);
-            const billMap = {};
-            const timeSlotCounters = {};
-
-            sorted.forEach(order => {
-                const date = new Date(order.created_at * 1000);
-                const year = date.getFullYear();
-                const month = date.getMonth();
-                const day = date.getDate();
-                const hour = date.getHours();
-                const halfHourSlot = Math.floor(date.getMinutes() / 30);
-                
-                const slotKey = `${year}-${month}-${day}-${hour}-${halfHourSlot}`;
-
-                if (!timeSlotCounters[slotKey]) {
-                    timeSlotCounters[slotKey] = 1;
-                } else {
-                    timeSlotCounters[slotKey]++;
-                }
-
-                billMap[order.id] = timeSlotCounters[slotKey];
-            });
-
-            return billMap;
-        }
-
-        function getFilteredOrders() {
-            if (currentOrderFilter === 'all') {
-                return allOrders.filter(o => o.status === 'pending' || o.status === 'cooking');
-            }
-            return allOrders.filter(o => o.status === currentOrderFilter);
-        }
-
         function renderOrders() {
             const container = document.getElementById('ordersContainer');
-            const billNumbers = calculateBillNumbers(allOrders);
-            const filtered = getFilteredOrders();
+            const filtered = currentOrderFilter === 'all' 
+                ? allOrders.filter(o => o.status === 'pending' || o.status === 'cooking')
+                : allOrders.filter(o => o.status === currentOrderFilter);
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="col-12 text-center py-5 text-muted fs-5">ไม่มีรายการออเดอร์ในหมวดนี้</div>`;
+                container.innerHTML = `<div class="col-12 text-center py-5 text-muted">ไม่มีรายการออเดอร์</div>`;
                 updateActionBars();
                 return;
             }
 
             container.innerHTML = filtered.map(order => {
-                const timeStr = new Date(order.created_at * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-                const billNo = billNumbers[order.id] || 1;
                 const isSelected = selectedOrderIds.has(String(order.id));
-                let statusBadge = '', statusClass = '';
-                
-                if (order.status === 'pending') {
-                    statusBadge = '<span class="glass-badge glass-badge-pending">⏳ รอยืนยัน</span>';
-                    statusClass = 'status-pending';
-                } else if (order.status === 'cooking') {
-                    statusBadge = '<span class="glass-badge glass-badge-cooking">🍳 กำลังทำ</span>';
-                    statusClass = 'status-cooking';
-                } else if (order.status === 'served') {
-                    statusBadge = '<span class="glass-badge glass-badge-served">✅ เสิร์ฟแล้ว</span>';
-                    statusClass = 'status-served';
-                } else {
-                    statusBadge = '<span class="glass-badge glass-badge-cancelled">❌ ยกเลิก</span>';
-                    statusClass = 'status-cancelled';
-                }
-
-                const itemsList = order.items.map(i => `
-                    <li class="list-group-item d-flex justify-content-between align-items-start bg-transparent py-2 border-0 px-0">
-                        <div>
-                            <span class="fw-bold text-dark">${i.name}</span>
-                            ${i.note ? `<small class="d-block text-warning-emphasis bg-warning-subtle px-2 py-0.5 rounded-pill mt-1 fw-medium" style="font-size: 0.78rem;">📌 ${i.note}</small>` : ''}
-                            <small class="text-muted d-block mt-1">${i.price} ฿</small>
-                        </div>
-                        <span class="badge bg-danger rounded-pill px-2.5 py-1.5 fs-6">x${i.qty}</span>
-                    </li>
-                `).join('');
-
                 return `
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card order-card p-2 ${statusClass} ${isSelected ? 'selected' : ''}" id="card-${order.id}">
-                            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 pb-2 px-2">
+                        <div class="card order-card p-2 ${isSelected ? 'selected' : ''}">
+                            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center gap-2">
                                     <input type="checkbox" class="custom-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectOrder('${order.id}', this.checked)">
-                                    <h4 class="fw-bold mb-0 text-danger">บิลที่ ${billNo}</h4>
+                                    <h5 class="fw-bold mb-0 text-danger">#${order.id}</h5>
                                 </div>
-                                <small class="text-muted"><i class="bi bi-clock"></i> ${timeStr} น.</small>
+                                <span class="glass-badge glass-badge-${order.status}">${order.status}</span>
                             </div>
                             <div class="card-body p-2">
-                                <div class="mb-3 text-end">${statusBadge}</div>
-                                <ul class="list-group list-group-flush border-top border-bottom mb-3 py-1">${itemsList}</ul>
-                                <div class="d-flex justify-content-between align-items-center fw-bold fs-5 px-1 mb-3">
-                                    <span class="text-secondary fs-6">ราคารวม</span>
-                                    <span class="text-danger fs-4">${Number(order.total_price).toFixed(2)} ฿</span>
-                                </div>
-                                <div class="d-grid gap-2">
-                                    ${order.status === 'pending' ? `
-                                        <button class="btn btn-action-primary py-2" onclick="updateOrderStatus('${order.id}', 'cooking', this)">
-                                            🍳 เริ่มทำอาหาร
-                                        </button>
-                                        <button class="btn btn-action-cancel btn-sm py-1.5" onclick="updateOrderStatus('${order.id}', 'cancelled', this)">
-                                            ยกเลิกออเดอร์
-                                        </button>
-                                    ` : ''}
-                                    ${order.status === 'cooking' ? `
-                                        <button class="btn btn-action-success py-2" onclick="updateOrderStatus('${order.id}', 'served', this)">
-                                            ✅ ทำเสร็จ/พร้อมเสิร์ฟ
-                                        </button>
-                                    ` : ''}
-                                </div>
+                                <ul class="list-group list-group-flush mb-3">
+                                    ${order.items.map(i => `<li class="list-group-item d-flex justify-content-between border-0 px-0">${i.name} <span>x${i.qty}</span></li>`).join('')}
+                                </ul>
+                                <div class="d-flex justify-content-between fw-bold"><span>รวม</span><span class="text-danger">${Number(order.total_price).toFixed(2)} ฿</span></div>
                             </div>
                         </div>
                     </div>
@@ -684,124 +410,12 @@
         }
 
         function toggleSelectOrder(id, isChecked) {
-            id = String(id);
-            if (isChecked) {
-                selectedOrderIds.add(id);
-                document.getElementById(`card-${id}`)?.classList.add('selected');
-            } else {
-                selectedOrderIds.delete(id);
-                document.getElementById(`card-${id}`)?.classList.remove('selected');
-            }
+            isChecked ? selectedOrderIds.add(String(id)) : selectedOrderIds.delete(String(id));
             updateActionBars();
         }
 
-        function toggleSelectAllOrders(btn) {
-            const filtered = getFilteredOrders();
-            const allSelected = filtered.length > 0 && filtered.every(o => selectedOrderIds.has(String(o.id)));
-
-            if (allSelected) {
-                filtered.forEach(o => selectedOrderIds.delete(String(o.id)));
-                btn.innerHTML = `<i class="bi bi-check2-square me-1"></i> เลือกทั้งหมด`;
-            } else {
-                filtered.forEach(o => selectedOrderIds.add(String(o.id)));
-                btn.innerHTML = `<i class="bi bi-x-square me-1"></i> ยกเลิกเลือกทั้งหมด`;
-            }
-            renderOrders();
-        }
-
-        async function batchDeleteOrders() {
-            if (selectedOrderIds.size === 0) return;
-
-            const confirm = await Swal.fire({
-                title: 'ยืนยันการลบออเดอร์?',
-                text: `คุณกำลังจะลบรายการที่เลือกจำนวน ${selectedOrderIds.size} รายการ`,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                confirmButtonText: 'ใช่, ลบเลย!',
-                cancelButtonText: 'ยกเลิก'
-            });
-
-            if (confirm.isConfirmed) {
-                const ids = Array.from(selectedOrderIds);
-                try {
-                    await fetch('/api/admin/orders/batch-delete', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ids })
-                    });
-                    selectedOrderIds.clear();
-                    Swal.fire('ลบเรียบร้อย!', 'ลบรายการออเดอร์ที่เลือกแล้ว', 'success');
-                    fetchOrders(false);
-                } catch (err) {
-                    console.error(err);
-                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบรายการได้', 'error');
-                }
-            }
-        }
-
-        async function batchUpdateOrderStatus(status) {
-            if (selectedOrderIds.size === 0) return;
-
-            const ids = Array.from(selectedOrderIds);
-            try {
-                await fetch('/api/admin/orders/batch-status', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ids, status })
-                });
-                selectedOrderIds.clear();
-                Swal.fire('สำเร็จ', 'อัปเดตสถานะออเดอร์เรียบร้อยแล้ว', 'success');
-                fetchOrders(false);
-            } catch (err) {
-                console.error(err);
-                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถอัปเดตสถานะได้', 'error');
-            }
-        }
-
-        async function updateOrderStatus(id, status, btnElement) {
-            let originalContent = '';
-            if (btnElement) {
-                originalContent = btnElement.innerHTML;
-                btnElement.disabled = true;
-                btnElement.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> กำลังบันทึก...`;
-            }
-
-            try {
-                await fetch(`/api/admin/orders/${id}/status`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status })
-                });
-                await fetchOrders(false);
-            } catch (err) {
-                console.error(err);
-                if (btnElement) {
-                    btnElement.disabled = false;
-                    btnElement.innerHTML = originalContent;
-                }
-            }
-        }
-
-        /* ------------------ SECTION 2: MENUS logic ------------------ */
-
-        let menusData = [];
-        const menuModal = new bootstrap.Modal(document.getElementById('menuModal'));
-
+        /* ------------------ MENUS LOGIC ------------------ */
         async function fetchMenus() {
-            const tbody = document.getElementById('menuTableBody');
-            tbody.innerHTML = Array(4).fill(0).map(() => `
-                <tr>
-                    <td class="text-center"><div class="skeleton skeleton-btn" style="width:20px;height:20px;"></div></td>
-                    <td class="text-center"><div class="skeleton skeleton-img"></div></td>
-                    <td><div class="skeleton skeleton-text"></div></td>
-                    <td><div class="skeleton skeleton-text-sm"></div></td>
-                    <td><div class="skeleton skeleton-text-sm"></div></td>
-                    <td><div class="skeleton skeleton-btn"></div></td>
-                    <td class="text-center"><div class="skeleton skeleton-btn"></div></td>
-                </tr>
-            `).join('');
-
             try {
                 const res = await fetch('/api/admin/menus');
                 const result = await res.json();
@@ -809,23 +423,19 @@
                     menusData = result.data;
                     renderMenusTable();
                 }
-            } catch (err) { 
-                console.error(err);
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
-            }
+            } catch (err) { console.error(err); }
         }
 
         function renderMenusTable() {
             const tbody = document.getElementById('menuTableBody');
             if (menusData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">ยังไม่มีรายการเมนูอาหาร</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">ไม่มีรายการเมนูอาหาร</td></tr>`;
                 updateActionBars();
                 return;
             }
 
             const allSelected = menusData.length > 0 && menusData.every(m => selectedMenuIds.has(String(m.id)));
-            const headerCheckbox = document.getElementById('selectAllMenusCheckbox');
-            if (headerCheckbox) headerCheckbox.checked = allSelected;
+            document.getElementById('selectAllMenusCheckbox').checked = allSelected;
 
             tbody.innerHTML = menusData.map(item => {
                 const isSelected = selectedMenuIds.has(String(item.id));
@@ -841,7 +451,6 @@
                         <td>
                             <div class="form-check form-switch">
                                 <input class="form-check-input" type="checkbox" ${item.is_available ? 'checked' : ''} onchange="toggleMenuStatus('${item.id}', this.checked)">
-                                <label class="form-check-label">${item.is_available ? '<span class="text-success fw-medium">พร้อมขาย</span>' : '<span class="text-muted">หมด</span>'}</label>
                             </div>
                         </td>
                         <td class="text-center">
@@ -856,50 +465,74 @@
         }
 
         function toggleSelectMenu(id, isChecked) {
-            id = String(id);
-            if (isChecked) {
-                selectedMenuIds.add(id);
-            } else {
-                selectedMenuIds.delete(id);
-            }
+            isChecked ? selectedMenuIds.add(String(id)) : selectedMenuIds.delete(String(id));
             renderMenusTable();
         }
 
         function toggleSelectAllMenus(isChecked) {
-            if (isChecked) {
-                menusData.forEach(m => selectedMenuIds.add(String(m.id)));
-            } else {
-                selectedMenuIds.clear();
-            }
+            isChecked ? menusData.forEach(m => selectedMenuIds.add(String(m.id))) : selectedMenuIds.clear();
             renderMenusTable();
         }
 
-        async function batchDeleteMenus() {
-            if (selectedMenuIds.size === 0) return;
-
+        // --- ฟังก์ชันลบเมนูเดี่ยว ---
+        async function deleteMenu(id) {
             const confirm = await Swal.fire({
-                title: 'ยืนยันการลบเมนู?',
-                text: `คุณกำลังจะลบรายการเมนูที่เลือกจำนวน ${selectedMenuIds.size} รายการ`,
+                title: 'ยืนยันการลบ?',
+                text: 'คุณต้องการลบเมนูนี้ใช่หรือไม่',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
-                confirmButtonText: 'ใช่, ลบเลย!',
+                confirmButtonText: 'ลบเลย',
                 cancelButtonText: 'ยกเลิก'
             });
 
             if (confirm.isConfirmed) {
-                const ids = Array.from(selectedMenuIds);
                 try {
-                    await fetch('/api/admin/menus/batch-delete', {
+                    const res = await fetch(`/api/admin/menus/${id}`, { method: 'DELETE' });
+                    const result = await res.json();
+                    if (result.success) {
+                        selectedMenuIds.delete(String(id));
+                        Swal.fire('สำเร็จ', 'ลบเมนูเรียบร้อยแล้ว', 'success');
+                        await fetchMenus(); // โหลดตารางใหม่ทันที
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด', result.message || 'ลบไม่สำเร็จ', 'error');
+                    }
+                } catch (err) {
+                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์', 'error');
+                }
+            }
+        }
+
+        // --- ฟังก์ชันลบเมนูแบบกลุ่ม ---
+        async function batchDeleteMenus() {
+            if (selectedMenuIds.size === 0) return;
+
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการลบเมนูที่เลือก?',
+                text: `คุณกำลังจะลบเมนูจำนวน ${selectedMenuIds.size} รายการ`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'ลบรายการที่เลือก',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (confirm.isConfirmed) {
+                try {
+                    const res = await fetch('/api/admin/menus/batch-delete', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ ids })
+                        body: JSON.stringify({ ids: Array.from(selectedMenuIds) })
                     });
-                    selectedMenuIds.clear();
-                    Swal.fire('ลบเรียบร้อย!', 'ลบรายการเมนูที่เลือกแล้ว', 'success');
-                    fetchMenus();
+                    const result = await res.json();
+                    if (result.success) {
+                        selectedMenuIds.clear();
+                        Swal.fire('สำเร็จ', 'ลบรายการเมนูที่เลือกเรียบร้อยแล้ว', 'success');
+                        await fetchMenus(); // โหลดตารางใหม่ทันที
+                    } else {
+                        Swal.fire('เกิดข้อผิดพลาด', result.message || 'ลบไม่สำเร็จ', 'error');
+                    }
                 } catch (err) {
-                    console.error(err);
                     Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบรายการได้', 'error');
                 }
             }
@@ -947,7 +580,7 @@
             if (result.success) {
                 menuModal.hide();
                 Swal.fire('สำเร็จ', result.message, 'success');
-                fetchMenus();
+                await fetchMenus();
             }
         }
 
@@ -957,14 +590,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ is_available: isAvailable })
             });
-            fetchMenus();
-        }
-
-        async function deleteMenu(id) {
-            if ((await Swal.fire({ title: 'ยืนยันการลบ?', icon: 'warning', showCancelButton: true })).isConfirmed) {
-                await fetch(`/api/admin/menus/${id}`, { method: 'DELETE' });
-                fetchMenus();
-            }
+            await fetchMenus();
         }
     </script>
 </body>

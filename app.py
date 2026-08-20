@@ -238,7 +238,29 @@ def update_order_status(order_id):
         return jsonify({"success": True, "message": "อัปเดตสถานะเรียบร้อย"}), 200
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+@app.route('/api/admin/menus/<int:menu_id>', methods=['DELETE'])
+def delete_menu(menu_id):
+    try:
+        # TODO: สั่งลบข้อมูลในฐานข้อมูลของคุณ
+        # Menu.query.filter_by(id=menu_id).delete()
+        # db.session.commit()
+        return jsonify({'success': True, 'message': 'ลบรายการเมนูเรียบร้อย'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
+# 2. API ลบเมนูพร้อมกันหลายรายการ (Batch Delete)
+@app.route('/api/admin/menus/batch-delete', methods=['DELETE'])
+def batch_delete_menus():
+    try:
+        data = request.get_json()
+        menu_ids = data.get('ids', [])
+        
+        # TODO: สั่งลบตามกลุ่ม ID ในฐานข้อมูลของคุณ
+        # Menu.query.filter(Menu.id.in_(menu_ids)).delete(synchronize_session=False)
+        # db.session.commit()
+        return jsonify({'success': True, 'message': f'ลบเมนูจำนวน {len(menu_ids)} รายการเรียบร้อย'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 # ==========================================
 # START SERVER
