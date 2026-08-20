@@ -32,7 +32,7 @@
             margin-left: 260px;
             flex: 1;
             padding: 30px;
-            padding-bottom: 100px;
+            padding-bottom: 110px;
             width: calc(100% - 260px);
             transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
         }
@@ -62,7 +62,7 @@
                 margin-left: 0;
                 width: 100%;
                 padding: 15px;
-                padding-bottom: 100px;
+                padding-bottom: 110px;
             }
         }
 
@@ -165,10 +165,10 @@
         .status-served::before { background: linear-gradient(90deg, #10b981, #34d399); }
         .status-cancelled::before { background: linear-gradient(90deg, #ef4444, #f87171); }
 
-        /* Custom Checkbox */
-        .order-checkbox {
-            width: 22px;
-            height: 22px;
+        /* Checkboxes */
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
             cursor: pointer;
             accent-color: #dc2626;
         }
@@ -323,7 +323,7 @@
                     <small class="text-muted">ระบบจะอัปเดตข้อมูลให้อัตโนมัติทุกๆ 5 วินาที</small>
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-glass btn-sm px-3" onclick="toggleSelectAllOrders(this)" id="btnSelectAll">
+                    <button class="btn btn-glass btn-sm px-3" onclick="toggleSelectAllOrders(this)" id="btnSelectAllOrders">
                         <i class="bi bi-check2-square me-1"></i> เลือกทั้งหมด
                     </button>
                     <button class="btn btn-glass-danger btn-sm px-3" onclick="fetchOrders(true)">
@@ -332,7 +332,7 @@
                 </div>
             </div>
 
-            <!-- Filter Status แบบ Glassmorphism -->
+            <!-- Filter Status -->
             <div class="d-flex gap-2 mb-4 flex-wrap" id="orderFilterGroup">
                 <button type="button" class="btn btn-glass active-all" onclick="filterOrders('all', this)">ทั้งหมด</button>
                 <button type="button" class="btn btn-glass" onclick="filterOrders('pending', this)">⏳ รอยืนยัน</button>
@@ -362,6 +362,9 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-dark">
                                 <tr>
+                                    <th style="width: 50px;" class="text-center">
+                                        <input type="checkbox" class="custom-checkbox" id="selectAllMenusCheckbox" onchange="toggleSelectAllMenus(this.checked)">
+                                    </th>
                                     <th style="width: 80px;">รูปภาพ</th>
                                     <th>ชื่อเมนู</th>
                                     <th>หมวดหมู่</th>
@@ -379,20 +382,31 @@
 
     </div>
 
-    <!-- Floating Batch Action Bar -->
-    <div class="floating-action-bar" id="floatingActionBar">
+    <!-- Floating Action Bar 1: สำหรับหน้ารับออเดอร์ -->
+    <div class="floating-action-bar" id="orderActionBar">
         <span class="text-white fw-semibold me-2">
-            เลือกไว้ <span class="badge bg-danger rounded-pill px-2.5 py-1" id="selectedCount">0</span> รายการ
+            เลือกออเดอร์ <span class="badge bg-danger rounded-pill px-2.5 py-1" id="selectedOrdersCount">0</span> รายการ
         </span>
         <div class="vr bg-secondary opacity-50 my-1"></div>
-        <button class="btn btn-sm btn-primary rounded-pill px-3 fw-medium" onclick="batchUpdateStatus('cooking')">
+        <button class="btn btn-sm btn-primary rounded-pill px-3 fw-medium" onclick="batchUpdateOrderStatus('cooking')">
             🍳 กำลังทำ
         </button>
-        <button class="btn btn-sm btn-success rounded-pill px-3 fw-medium" onclick="batchUpdateStatus('served')">
+        <button class="btn btn-sm btn-success rounded-pill px-3 fw-medium" onclick="batchUpdateOrderStatus('served')">
             ✅ พร้อมเสิร์ฟ
         </button>
         <button class="btn btn-sm btn-danger rounded-pill px-3 fw-medium" onclick="batchDeleteOrders()">
             🗑️ ลบรายการ
+        </button>
+    </div>
+
+    <!-- Floating Action Bar 2: สำหรับหน้าจัดการเมนู -->
+    <div class="floating-action-bar" id="menuActionBar">
+        <span class="text-white fw-semibold me-2">
+            เลือกเมนู <span class="badge bg-danger rounded-pill px-2.5 py-1" id="selectedMenusCount">0</span> รายการ
+        </span>
+        <div class="vr bg-secondary opacity-50 my-1"></div>
+        <button class="btn btn-sm btn-danger rounded-pill px-3 fw-medium" onclick="batchDeleteMenus()">
+            🗑️ ลบเมนูที่เลือก
         </button>
     </div>
 
@@ -443,18 +457,28 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        let currentTab = 'orders';
+        let selectedOrderIds = new Set();
+        let selectedMenuIds = new Set();
+
         function toggleSidebar() {
             document.getElementById('sidebarMenu').classList.toggle('show');
             document.getElementById('sidebarOverlay').classList.toggle('show');
         }
 
         function switchTab(tabName) {
+            currentTab = tabName;
             document.querySelectorAll('.style-tab').forEach(el => el.classList.remove('active'));
             document.getElementById(`tab-${tabName}`).classList.add('active');
 
             if (window.innerWidth < 992) {
                 toggleSidebar();
             }
+
+            // เคลียร์ค่าที่เลือกไว้ในทั้งสองหน้า เพื่อไม่ให้ Action bar ค้าง
+            selectedOrderIds.clear();
+            selectedMenuIds.clear();
+            updateActionBars();
 
             if (tabName === 'orders') {
                 document.getElementById('section-orders').style.display = 'block';
@@ -467,13 +491,37 @@
             }
         }
 
+        function updateActionBars() {
+            const orderBar = document.getElementById('orderActionBar');
+            const menuBar = document.getElementById('menuActionBar');
+
+            // อัปเดตหน้า ออเดอร์
+            if (currentTab === 'orders' && selectedOrderIds.size > 0) {
+                document.getElementById('selectedOrdersCount').innerText = selectedOrderIds.size;
+                orderBar.classList.add('show');
+            } else {
+                orderBar.classList.remove('show');
+            }
+
+            // อัปเดตหน้า เมนู
+            if (currentTab === 'menus' && selectedMenuIds.size > 0) {
+                document.getElementById('selectedMenusCount').innerText = selectedMenuIds.size;
+                menuBar.classList.add('show');
+            } else {
+                menuBar.classList.remove('show');
+            }
+        }
+
+        /* ------------------ SECTION 1: ORDERS logic ------------------ */
+
         let allOrders = [];
-        let selectedOrderIds = new Set();
         let currentOrderFilter = 'all';
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchOrders(true);
-            setInterval(() => fetchOrders(false), 5000);
+            setInterval(() => {
+                if (currentTab === 'orders') fetchOrders(false);
+            }, 5000);
         });
 
         async function fetchOrders(showSkeleton = false) {
@@ -559,7 +607,7 @@
 
             if (filtered.length === 0) {
                 container.innerHTML = `<div class="col-12 text-center py-5 text-muted fs-5">ไม่มีรายการออเดอร์ในหมวดนี้</div>`;
-                updateBatchActionBar();
+                updateActionBars();
                 return;
             }
 
@@ -599,7 +647,7 @@
                         <div class="card order-card p-2 ${statusClass} ${isSelected ? 'selected' : ''}" id="card-${order.id}">
                             <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 pb-2 px-2">
                                 <div class="d-flex align-items-center gap-2">
-                                    <input type="checkbox" class="order-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectOrder('${order.id}', this.checked)">
+                                    <input type="checkbox" class="custom-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectOrder('${order.id}', this.checked)">
                                     <h4 class="fw-bold mb-0 text-danger">บิลที่ ${billNo}</h4>
                                 </div>
                                 <small class="text-muted"><i class="bi bi-clock"></i> ${timeStr} น.</small>
@@ -632,10 +680,8 @@
                 `;
             }).join('');
 
-            updateBatchActionBar();
+            updateActionBars();
         }
-
-        /* ------------------ Selection & Batch Operations ------------------ */
 
         function toggleSelectOrder(id, isChecked) {
             id = String(id);
@@ -646,12 +692,12 @@
                 selectedOrderIds.delete(id);
                 document.getElementById(`card-${id}`)?.classList.remove('selected');
             }
-            updateBatchActionBar();
+            updateActionBars();
         }
 
         function toggleSelectAllOrders(btn) {
             const filtered = getFilteredOrders();
-            const allSelected = filtered.every(o => selectedOrderIds.has(String(o.id)));
+            const allSelected = filtered.length > 0 && filtered.every(o => selectedOrderIds.has(String(o.id)));
 
             if (allSelected) {
                 filtered.forEach(o => selectedOrderIds.delete(String(o.id)));
@@ -663,18 +709,6 @@
             renderOrders();
         }
 
-        function updateBatchActionBar() {
-            const bar = document.getElementById('floatingActionBar');
-            const countSpan = document.getElementById('selectedCount');
-            countSpan.innerText = selectedOrderIds.size;
-
-            if (selectedOrderIds.size > 0) {
-                bar.classList.add('show');
-            } else {
-                bar.classList.remove('show');
-            }
-        }
-
         async function batchDeleteOrders() {
             if (selectedOrderIds.size === 0) return;
 
@@ -684,7 +718,6 @@
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#6b7280',
                 confirmButtonText: 'ใช่, ลบเลย!',
                 cancelButtonText: 'ยกเลิก'
             });
@@ -707,7 +740,7 @@
             }
         }
 
-        async function batchUpdateStatus(status) {
+        async function batchUpdateOrderStatus(status) {
             if (selectedOrderIds.size === 0) return;
 
             const ids = Array.from(selectedOrderIds);
@@ -728,14 +761,10 @@
 
         async function updateOrderStatus(id, status, btnElement) {
             let originalContent = '';
-            
             if (btnElement) {
                 originalContent = btnElement.innerHTML;
                 btnElement.disabled = true;
-                btnElement.innerHTML = `
-                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                    กำลังบันทึก...
-                `;
+                btnElement.innerHTML = `<span class="spinner-border spinner-border-sm me-1"></span> กำลังบันทึก...`;
             }
 
             try {
@@ -754,7 +783,7 @@
             }
         }
 
-        /* ------------------ Menu Operations ------------------ */
+        /* ------------------ SECTION 2: MENUS logic ------------------ */
 
         let menusData = [];
         const menuModal = new bootstrap.Modal(document.getElementById('menuModal'));
@@ -763,6 +792,7 @@
             const tbody = document.getElementById('menuTableBody');
             tbody.innerHTML = Array(4).fill(0).map(() => `
                 <tr>
+                    <td class="text-center"><div class="skeleton skeleton-btn" style="width:20px;height:20px;"></div></td>
                     <td class="text-center"><div class="skeleton skeleton-img"></div></td>
                     <td><div class="skeleton skeleton-text"></div></td>
                     <td><div class="skeleton skeleton-text-sm"></div></td>
@@ -781,35 +811,98 @@
                 }
             } catch (err) { 
                 console.error(err);
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>`;
             }
         }
 
         function renderMenusTable() {
             const tbody = document.getElementById('menuTableBody');
             if (menusData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4">ยังไม่มีรายการเมนูอาหาร</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4">ยังไม่มีรายการเมนูอาหาร</td></tr>`;
+                updateActionBars();
                 return;
             }
 
-            tbody.innerHTML = menusData.map(item => `
-                <tr>
-                    <td><img src="${item.image_url || 'https://via.placeholder.com/50'}" class="rounded-3" style="width: 50px; height: 50px; object-fit: cover;"></td>
-                    <td class="fw-bold">${item.name}</td>
-                    <td><span class="badge bg-secondary rounded-pill">${item.category || 'ทั่วไป'}</span></td>
-                    <td>${Number(item.price).toFixed(2)}</td>
-                    <td>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" ${item.is_available ? 'checked' : ''} onchange="toggleMenuStatus('${item.id}', this.checked)">
-                            <label class="form-check-label">${item.is_available ? '<span class="text-success fw-medium">พร้อมขาย</span>' : '<span class="text-muted">หมด</span>'}</label>
-                        </div>
-                    </td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="openEditMenuModal('${item.id}')"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteMenu('${item.id}')"><i class="bi bi-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            const allSelected = menusData.length > 0 && menusData.every(m => selectedMenuIds.has(String(m.id)));
+            const headerCheckbox = document.getElementById('selectAllMenusCheckbox');
+            if (headerCheckbox) headerCheckbox.checked = allSelected;
+
+            tbody.innerHTML = menusData.map(item => {
+                const isSelected = selectedMenuIds.has(String(item.id));
+                return `
+                    <tr class="${isSelected ? 'table-danger' : ''}">
+                        <td class="text-center">
+                            <input type="checkbox" class="custom-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectMenu('${item.id}', this.checked)">
+                        </td>
+                        <td><img src="${item.image_url || 'https://via.placeholder.com/50'}" class="rounded-3" style="width: 50px; height: 50px; object-fit: cover;"></td>
+                        <td class="fw-bold">${item.name}</td>
+                        <td><span class="badge bg-secondary rounded-pill">${item.category || 'ทั่วไป'}</span></td>
+                        <td>${Number(item.price).toFixed(2)}</td>
+                        <td>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" ${item.is_available ? 'checked' : ''} onchange="toggleMenuStatus('${item.id}', this.checked)">
+                                <label class="form-check-label">${item.is_available ? '<span class="text-success fw-medium">พร้อมขาย</span>' : '<span class="text-muted">หมด</span>'}</label>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary rounded-circle me-1" onclick="openEditMenuModal('${item.id}')"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="deleteMenu('${item.id}')"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            updateActionBars();
+        }
+
+        function toggleSelectMenu(id, isChecked) {
+            id = String(id);
+            if (isChecked) {
+                selectedMenuIds.add(id);
+            } else {
+                selectedMenuIds.delete(id);
+            }
+            renderMenusTable();
+        }
+
+        function toggleSelectAllMenus(isChecked) {
+            if (isChecked) {
+                menusData.forEach(m => selectedMenuIds.add(String(m.id)));
+            } else {
+                selectedMenuIds.clear();
+            }
+            renderMenusTable();
+        }
+
+        async function batchDeleteMenus() {
+            if (selectedMenuIds.size === 0) return;
+
+            const confirm = await Swal.fire({
+                title: 'ยืนยันการลบเมนู?',
+                text: `คุณกำลังจะลบรายการเมนูที่เลือกจำนวน ${selectedMenuIds.size} รายการ`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'ใช่, ลบเลย!',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (confirm.isConfirmed) {
+                const ids = Array.from(selectedMenuIds);
+                try {
+                    await fetch('/api/admin/menus/batch-delete', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ ids })
+                    });
+                    selectedMenuIds.clear();
+                    Swal.fire('ลบเรียบร้อย!', 'ลบรายการเมนูที่เลือกแล้ว', 'success');
+                    fetchMenus();
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถลบรายการได้', 'error');
+                }
+            }
         }
 
         function openAddMenuModal() {
