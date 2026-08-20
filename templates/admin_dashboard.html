@@ -200,6 +200,7 @@
                 </div>
             </div>
 
+            <!-- Grid Menu Cards -->
             <div class="row g-3" id="menusContainer"></div>
         </div>
     </div>
@@ -350,52 +351,28 @@
                 : allOrders.filter(o => o.status === currentOrderFilter);
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="col-12 text-center py-5 text-muted">ไม่มีรายการออเดอร์ในขณะนี้</div>`;
+                container.innerHTML = `<div class="col-12 text-center py-5 text-muted">ไม่มีรายการออเดอร์</div>`;
                 updateActionBars();
                 return;
             }
-
-            const statusBadges = {
-                'pending': '<span class="badge bg-warning text-dark rounded-pill"><i class="bi bi-hourglass-split"></i> รอยืนยัน</span>',
-                'cooking': '<span class="badge bg-primary rounded-pill"><i class="bi bi-fire"></i> กำลังทำ</span>',
-                'served': '<span class="badge bg-success rounded-pill"><i class="bi bi-check-circle"></i> เสิร์ฟแล้ว</span>'
-            };
 
             container.innerHTML = filtered.map(order => {
                 const isSelected = selectedOrderIds.has(String(order.id));
                 return `
                     <div class="col-md-6 col-lg-4 col-xl-3">
-                        <div class="card order-card h-100 ${isSelected ? 'selected' : ''}">
-                            <div class="card-header bg-white border-bottom-0 d-flex justify-content-between align-items-center pt-3 px-3">
+                        <div class="card order-card p-2 ${isSelected ? 'selected' : ''}">
+                            <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center gap-2">
                                     <input type="checkbox" class="custom-checkbox" ${isSelected ? 'checked' : ''} onchange="toggleSelectOrder('${order.id}', this.checked)">
                                     <h5 class="fw-bold mb-0 text-danger">#${order.id}</h5>
                                 </div>
-                                ${statusBadges[order.status] || `<span class="badge bg-secondary rounded-pill">${order.status}</span>`}
+                                <span class="badge bg-secondary">${order.status}</span>
                             </div>
-                            <div class="card-body px-3 py-2">
-                                <div class="bg-light rounded-3 p-2 mb-3">
-                                    <ul class="list-group list-group-flush bg-transparent">
-                                        ${order.items.map(i => `
-                                            <li class="list-group-item bg-transparent d-flex justify-content-between border-0 px-0 py-1 text-secondary">
-                                                <span>${i.name}</span>
-                                                <span class="fw-bold text-dark">x${i.qty}</span>
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center pt-1">
-                                    <span class="text-muted small">ยอดรวมสุทธิ</span>
-                                    <span class="fw-bold text-danger fs-5">฿${Number(order.total_price).toFixed(2)}</span>
-                                </div>
-                            </div>
-                            <div class="card-footer bg-white border-top-0 p-3 pt-0 d-flex gap-2">
-                                ${order.status === 'pending' ? `
-                                    <button class="btn btn-sm btn-primary w-100 rounded-pill" onclick="updateSingleOrderStatus('${order.id}', 'cooking')">🍳 เริ่มทำอาหาร</button>
-                                ` : ''}
-                                ${order.status === 'cooking' ? `
-                                    <button class="btn btn-sm btn-success w-100 rounded-pill" onclick="updateSingleOrderStatus('${order.id}', 'served')">✅ พร้อมเสิร์ฟ</button>
-                                ` : ''}
+                            <div class="card-body p-2">
+                                <ul class="list-group list-group-flush mb-3">
+                                    ${order.items.map(i => `<li class="list-group-item d-flex justify-content-between border-0 px-0">${i.name} <span>x${i.qty}</span></li>`).join('')}
+                                </ul>
+                                <div class="d-flex justify-content-between fw-bold"><span>รวม</span><span class="text-danger">${Number(order.total_price).toFixed(2)} ฿</span></div>
                             </div>
                         </div>
                     </div>
@@ -408,60 +385,6 @@
         function toggleSelectOrder(id, isChecked) {
             isChecked ? selectedOrderIds.add(String(id)) : selectedOrderIds.delete(String(id));
             updateActionBars();
-        }
-
-        function toggleSelectAllOrders(btn) {
-            const filtered = currentOrderFilter === 'all' 
-                ? allOrders.filter(o => o.status === 'pending' || o.status === 'cooking')
-                : allOrders.filter(o => o.status === currentOrderFilter);
-
-            const allSelected = filtered.length > 0 && filtered.every(o => selectedOrderIds.has(String(o.id)));
-            
-            if (allSelected) {
-                filtered.forEach(o => selectedOrderIds.delete(String(o.id)));
-                btn.innerHTML = `<i class="bi bi-check2-square me-1"></i> เลือกทั้งหมด`;
-            } else {
-                filtered.forEach(o => selectedOrderIds.add(String(o.id)));
-                btn.innerHTML = `<i class="bi bi-x-square me-1"></i> ยกเลิกการเลือก`;
-            }
-            renderOrders();
-        }
-
-        async function updateSingleOrderStatus(orderId, status) {
-            try {
-                const res = await fetch(`/api/admin/orders/${orderId}/status`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status })
-                });
-                const result = await res.json();
-                if (result.success) {
-                    fetchOrders(false);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
-
-        async function batchUpdateOrderStatus(status) {
-            if (selectedOrderIds.size === 0) return;
-            try {
-                const res = await fetch('/api/admin/orders/batch-status', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ids: Array.from(selectedOrderIds),
-                        status
-                    })
-                });
-                const result = await res.json();
-                if (result.success) {
-                    selectedOrderIds.clear();
-                    fetchOrders(false);
-                }
-            } catch (err) {
-                console.error(err);
-            }
         }
 
         /* ------------------ MENUS LOGIC ------------------ */
@@ -487,7 +410,7 @@
             container.innerHTML = menusData.map(item => {
                 const isSelected = selectedMenuIds.has(String(item.id));
                 return `
-                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2.5">
                         <div class="card menu-card h-100 ${isSelected ? 'selected' : ''}">
                             <div class="position-relative">
                                 <img src="${item.image_url || 'https://via.placeholder.com/200x140?text=No+Image'}" class="menu-img">
@@ -501,7 +424,7 @@
                             <div class="card-body p-3 d-flex flex-column justify-content-between">
                                 <div>
                                     <h6 class="fw-bold mb-1 text-truncate">${item.name}</h6>
-                                    <p class="text-danger fw-bold fs-5 mb-2">฿${Number(item.price).toFixed(2)}</p>
+                                    <p class="text-danger fw-bold fs-5 mb-2">${Number(item.price).toFixed(2)} ฿</p>
                                 </div>
                                 <div class="d-flex align-items-center justify-content-between pt-2 border-top">
                                     <div class="form-check form-switch m-0">

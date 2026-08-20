@@ -3,254 +3,315 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ตะกร้าของฉัน - ร้านข้าวกล่องไอคุน</title>
+    <title>สั่งอาหาร - ร้านข้าวกล่องไอคุน</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body {
-            background-color: #fcf8f6;
-            font-family: 'Sukhumvit Set', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #2d3748;
+        body { padding-bottom: 90px; }
+        .menu-img { height: 140px; object-fit: cover; }
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; }
+        
+        /* Skeleton Shimmer */
+        @keyframes shimmer {
+          0% { background-position: -200px 0; }
+          100% { background-position: 200px 0; }
         }
 
-        .cart-container {
-            max-width: 430px;
-            margin: 0 auto;
-            min-height: 100vh;
-            background: #ffffff;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        .skeleton {
+          background: #f6f7f8;
+          background-image: linear-gradient(
+            90deg,
+            #f6f7f8 0%,
+            #edeef1 20%,
+            #f6f7f8 40%,
+            #f6f7f8 100%
+          );
+          background-repeat: no-repeat;
+          background-size: 800px 104px;
+          display: inline-block;
+          animation: shimmer 1.2s ease-in-out infinite;
+          border-radius: 6px;
         }
 
-        .header-action {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            border: 1px solid #edf2f7;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #fff;
-            color: #2d3748;
-            text-decoration: none;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-        }
-
-        /* Cart Item Card */
-        .cart-item-card {
-            background: #f8fafc;
-            border-radius: 24px;
-            padding: 14px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            border: 1px solid #f1f5f9;
-        }
-
-        .cart-item-img {
-            width: 85px;
-            height: 85px;
-            border-radius: 18px;
-            object-fit: cover;
-        }
-
-        .qty-control {
-            background: #ffffff;
-            border-radius: 30px;
-            padding: 2px 6px;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid #e2e8f0;
-        }
-
-        .btn-qty {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-qty-minus { background: #f1f5f9; color: #64748b; }
-        .btn-qty-plus { background: #0f172a; color: #ffffff; }
-
-        /* Summary Card */
-        .summary-card {
-            background: #f8fafc;
-            border-radius: 24px;
-            padding: 20px;
-            margin-top: 10px;
-            border: 1px solid #f1f5f9;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            color: #64748b;
-            font-size: 0.95rem;
-        }
-
-        .summary-total {
-            border-top: 1px dashed #cbd5e1;
-            padding-top: 12px;
-            margin-top: 10px;
-            font-weight: 700;
-            color: #0f172a;
-            font-size: 1.1rem;
-        }
-
-        .btn-place-order {
-            background: #ff5e2b;
-            color: #ffffff;
-            border: none;
-            border-radius: 30px;
-            padding: 16px;
-            width: 100%;
-            font-weight: 700;
-            font-size: 1.1rem;
-            box-shadow: 0 10px 20px rgba(255, 94, 43, 0.25);
-            transition: all 0.2s;
-        }
-
-        .btn-place-order:hover {
-            background: #e04f20;
-            color: #ffffff;
-        }
+        .skeleton-card-img { height: 140px; width: 100%; border-radius: 8px 8px 0 0; }
+        .skeleton-text { width: 100%; height: 16px; margin: 4px 0; }
+        .skeleton-text-sm { width: 50%; height: 14px; }
+        .skeleton-btn { width: 100%; height: 32px; border-radius: 50px; }
     </style>
 </head>
-<body>
+<body class="bg-light">
 
-<div class="cart-container">
-    <div>
-        <!-- Top Bar -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="/" class="header-action"><i class="bi bi-chevron-left fs-5"></i></a>
-            <h5 class="fw-bold mb-0">My Cart</h5>
-            <a href="/" class="header-action"><i class="bi bi-plus-lg fs-5"></i></a>
+    <!-- Header -->
+    <nav class="navbar navbar-dark bg-danger sticky-top shadow-sm">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1 fw-bold">🍱 ข้าวกล่องไอคุน</span>
+            <span class="badge bg-white text-danger fs-6" id="tableDisplay">โต๊ะ {{ table_num }}</span>
+        </div>
+    </nav>
+
+    <div class="container py-3">
+        <!-- ตัวเลือกหมวดหมู่ -->
+        <div class="d-flex overflow-auto gap-2 mb-3 pb-2" id="categoryFilter">
+            <button class="btn btn-danger btn-sm rounded-pill px-3 active" onclick="filterCategory('ทั้งหมด', this)">ทั้งหมด</button>
+            <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="filterCategory('อาหารจานเดียว', this)">อาหารจานเดียว</button>
+            <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="filterCategory('กับข้าว', this)">กับข้าว</button>
+            <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="filterCategory('เครื่องดื่ม', this)">เครื่องดื่ม</button>
         </div>
 
-        <!-- Cart List Container -->
-        <div id="cartItemsList"></div>
+        <!-- รายการเมนู -->
+        <div class="row g-3" id="menuContainer"></div>
     </div>
 
-    <!-- Payment Summary & Action Button -->
-    <div>
-        <div class="summary-card mb-3">
-            <div class="summary-row">
-                <span>ราคารวมสินค้า</span>
-                <span id="subtotalAmount">฿0.00</span>
+    <!-- แถบตะกร้าสินค้าด้านล่าง -->
+    <div class="cart-bar bg-white border-top shadow-lg p-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div>
+                <small class="text-muted d-block">รวมทั้งหมด (<span id="cartCount">0</span> รายการ)</small>
+                <span class="fs-4 fw-bold text-danger" id="cartTotal">0.00</span> <small>บาท</small>
             </div>
-            <div class="summary-row">
-                <span>ค่าบริการ</span>
-                <span>฿0.00</span>
-            </div>
-            <div class="summary-row summary-total">
-                <span>ยอดชำระทั้งหมด</span>
-                <span id="totalPaymentAmount">฿0.00</span>
+            <button class="btn btn-danger btn-lg px-4 fw-bold" onclick="openCartModal()">
+                <i class="bi bi-cart-fill me-1"></i> ดูตะกร้า
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal ตะกร้าสินค้า -->
+    <div class="modal fade" id="cartModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-cart3 me-2"></i>รายการที่สั่ง (โต๊ะ <span id="modalTableNum"></span>)</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="cartItemList" class="mb-3"></div>
+                    <hr>
+                    <div class="d-flex justify-content-between fs-5 fw-bold">
+                        <span>ราคารวมทั้งหมด:</span>
+                        <span class="text-danger"><span id="modalCartTotal">0.00</span> บาท</span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">เลือกอาหารเพิ่ม</button>
+                    <button type="button" class="btn btn-danger px-4" onclick="submitOrder()">ยืนยันการสั่งอาหาร</button>
+                </div>
             </div>
         </div>
-
-        <button class="btn btn-place-order" onclick="submitOrder()">
-            Place Order
-        </button>
     </div>
-</div>
 
-<script>
-    let cart = JSON.parse(localStorage.getItem('cart')) || [
-        { id: 1, name: 'บะหมี่ราเมนเผ็ด', price: 120, qty: 1, img: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=300', desc: 'รสชาติเข้มข้น เผ็ดร้อนกำลังดี' },
-        { id: 2, name: 'ชีสเบอร์เกอร์', price: 150, qty: 1, img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300', desc: 'เนื้อฉ่ำๆ พร้อมชีสเยิ้มๆ' }
-    ];
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const tableNum = "{{ table_num }}";
+        document.getElementById('modalTableNum').innerText = tableNum;
 
-    function renderCart() {
-        const container = document.getElementById('cartItemsList');
-        if (cart.length === 0) {
-            container.innerHTML = `<div class="text-center py-5 text-muted">ไม่มีสินค้าในตะกร้า</div>`;
-            updateSummary(0);
-            return;
+        let allMenus = [];
+        let cart = [];
+        const cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
+
+        document.addEventListener('DOMContentLoaded', fetchMenus);
+
+        async function fetchMenus() {
+            const container = document.getElementById('menuContainer');
+            
+            // แสดง Skeleton 6 Card ล่วงหน้า
+            container.innerHTML = Array(6).fill(0).map(() => `
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden p-2">
+                        <div class="skeleton skeleton-card-img mb-2"></div>
+                        <div class="skeleton skeleton-text mb-1"></div>
+                        <div class="skeleton skeleton-text-sm mb-3"></div>
+                        <div class="skeleton skeleton-btn"></div>
+                    </div>
+                </div>
+            `).join('');
+
+            try {
+                const res = await fetch('/api/menus');
+                const result = await res.json();
+                if (result.success) {
+                    allMenus = result.data;
+                    renderMenus(allMenus);
+                }
+            } catch (err) {
+                container.innerHTML = `<div class="text-center text-danger py-5">เกิดข้อผิดพลาดในการโหลดเมนู</div>`;
+            }
         }
 
-        let total = 0;
-        container.innerHTML = cart.map((item, index) => {
-            const itemTotal = item.price * item.qty;
-            total += itemTotal;
-            const qtyStr = item.qty < 10 ? `0${item.qty}` : item.qty;
-            return `
-                <div class="cart-item-card">
-                    <img src="${item.img || 'https://via.placeholder.com/85'}" class="cart-item-img">
-                    <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-1">${item.name}</h6>
-                        <small class="text-muted d-block mb-2 text-truncate" style="max-width: 180px;">${item.desc || ''}</small>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-bold text-dark">฿${item.price.toFixed(2)}</span>
-                            <div class="qty-control">
-                                <button class="btn-qty btn-qty-minus" onclick="changeQty(${index}, -1)"><i class="bi bi-dash"></i></button>
-                                <span class="fw-bold small px-1">${qtyStr}</span>
-                                <button class="btn-qty btn-qty-plus" onclick="changeQty(${index}, 1)"><i class="bi bi-plus"></i></button>
+        function renderMenus(menus) {
+            const container = document.getElementById('menuContainer');
+            if (menus.length === 0) {
+                container.innerHTML = `<div class="text-center py-5 text-muted">ไม่มีเมนูอาหารในหมวดหมู่นี้</div>`;
+                return;
+            }
+
+            container.innerHTML = menus.map(item => `
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                        <img src="${item.image_url || 'https://via.placeholder.com/300x200?text=Ikun+Food'}" class="card-img-top menu-img">
+                        <div class="card-body p-2 d-flex flex-column justify-content-between">
+                            <div>
+                                <h6 class="card-title fw-bold mb-1 text-truncate">${item.name}</h6>
+                                <p class="text-danger fw-bold mb-2">${Number(item.price).toFixed(2)} ฿</p>
                             </div>
+                            <button class="btn btn-sm btn-outline-danger w-100 rounded-pill" onclick="addToCart('${item.id}', '${item.name}', ${item.price})">
+                                + เพิ่มลงตะกร้า
+                            </button>
                         </div>
                     </div>
                 </div>
-            `;
-        }).join('');
-
-        updateSummary(total);
-    }
-
-    function changeQty(index, change) {
-        cart[index].qty += change;
-        if (cart[index].qty <= 0) {
-            cart.splice(index, 1);
+            `).join('');
         }
-        localStorage.setItem('cart', JSON.stringify(cart));
-        renderCart();
+function renderCartModal() {
+    const cartContainer = document.getElementById('cartItemsContainer'); // ปรับตาม ID ในโค้ดของคุณ
+    
+    if (cart.length === 0) {
+        cartContainer.innerHTML = '<p class="text-center py-3">ไม่มีรายการในตะกร้า</p>';
+        return;
     }
 
-    function updateSummary(total) {
-        document.getElementById('subtotalAmount').innerText = `฿${total.toFixed(2)}`;
-        document.getElementById('totalPaymentAmount').innerText = `฿${total.toFixed(2)}`;
-    }
+    cartContainer.innerHTML = cart.map((item, index) => `
+        <div class="cart-item border-bottom pb-2 mb-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <div>
+                    <h6 class="fw-bold mb-0">${item.name}</h6>
+                    <small class="text-muted">${item.price} x ${item.qty} = ${(item.price * item.qty).toFixed(2)} ฿</small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="updateQty(${index}, -1)">-</button>
+                    <span class="fw-bold">${item.qty}</span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="updateQty(${index}, 1)">+</button>
+                </div>
+            </div>
+            
+            <!--  เพิ่มช่องใส่หมายเหตุตรงนี้ -->
+            <input type="text" 
+                   class="form-control form-control-sm mt-1 text-muted" 
+                   placeholder="✏️ หมายเหตุ (เช่น เผ็ดน้อย, ไม่ใส่ผัก)" 
+                   value="${item.note || ''}" 
+                   onchange="updateItemNote(${index}, this.value)">
+        </div>
+    `).join('');
+}
 
-    async function submitOrder() {
-        if (cart.length === 0) {
-            Swal.fire('ข้อผิดพลาด', 'ไม่มีสินค้าในตะกร้า', 'warning');
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items: cart })
-            });
-            const result = await res.json();
-            if (result.success) {
-                localStorage.removeItem('cart');
-                Swal.fire('สั่งซื้อสำเร็จ', 'ส่งออเดอร์ไปยังห้องครัวเรียบร้อยแล้ว', 'success');
-                cart = [];
-                renderCart();
+// ฟังก์ชันอัปเดตหมายเหตุในตะกร้า
+function updateItemNote(index, noteValue) {
+    cart[index].note = noteValue;
+}
+        function filterCategory(cat, btnElement) {
+            if (cat === 'ทั้งหมด') {
+                renderMenus(allMenus);
+            } else {
+                const filtered = allMenus.filter(m => m.category === cat);
+                renderMenus(filtered);
             }
-        } catch (err) {
-            Swal.fire('สำเร็จ', 'ส่งออเดอร์เรียบร้อยแล้ว', 'success');
-            localStorage.removeItem('cart');
-            cart = [];
-            renderCart();
+
+            if (btnElement) {
+                const buttons = document.querySelectorAll('#categoryFilter button');
+                buttons.forEach(btn => {
+                    btn.classList.remove('btn-danger', 'active');
+                    btn.classList.add('btn-outline-danger');
+                });
+                btnElement.classList.remove('btn-outline-danger');
+                btnElement.classList.add('btn-danger', 'active');
+            }
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', renderCart);
-</script>
+        function addToCart(id, name, price) {
+            const index = cart.findIndex(item => item.id == id);
+            if (index > -1) {
+                cart[index].qty += 1;
+            } else {
+                cart.push({ id, name, price, qty: 1 });
+            }
+            updateCartBar();
+            
+            const Toast = Swal.mixin({
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 1000
+            });
+            Toast.fire({ icon: 'success', title: `เพิ่ม ${name} แล้ว` });
+        }
 
+        function updateCartBar() {
+            const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            document.getElementById('cartCount').innerText = totalQty;
+            document.getElementById('cartTotal').innerText = totalPrice.toFixed(2);
+            document.getElementById('modalCartTotal').innerText = totalPrice.toFixed(2);
+        }
+
+        function openCartModal() {
+            if (cart.length === 0) {
+                Swal.fire('ตะกร้าว่างเปล่า', 'กรุณาเลือกอาหารก่อนครับ', 'info');
+                return;
+            }
+
+            const listContainer = document.getElementById('cartItemList');
+            listContainer.innerHTML = cart.map((item, index) => `
+                <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                    <div>
+                        <div class="fw-bold">${item.name}</div>
+                        <small class="text-muted">${item.price} x ${item.qty} = ${(item.price * item.qty).toFixed(2)} ฿</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-outline-secondary px-2" onclick="changeQty(${index}, -1)">-</button>
+                        <span class="fw-bold">${item.qty}</span>
+                        <button class="btn btn-sm btn-outline-secondary px-2" onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+
+            cartModal.show();
+        }
+
+        function changeQty(index, delta) {
+            cart[index].qty += delta;
+            if (cart[index].qty <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartBar();
+            if (cart.length === 0) {
+                cartModal.hide();
+            } else {
+                openCartModal();
+            }
+        }
+
+        async function submitOrder() {
+            if (cart.length === 0) return;
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
+            try {
+                const res = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        table_number: tableNum,
+                        items: cart,
+                        total_price: totalPrice
+                    })
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    cartModal.hide();
+                    cart = [];
+                    updateCartBar();
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ส่งคำสั่งซื้อสำเร็จ!',
+                        text: 'ทางร้านกำลังเตรียมอาหารให้คุณครับ',
+                        confirmButtonColor: '#dc3545'
+                    });
+                } else {
+                    Swal.fire('เกิดข้อผิดพลาด', result.error, 'error');
+                }
+            } catch (err) {
+                Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถส่งคำสั่งซื้อได้ กรุณาลองใหม่', 'error');
+            }
+        }
+    </script>
 </body>
 </html>
